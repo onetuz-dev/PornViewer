@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Main-Class: com.plovdev.pronviewer.Launcher
+Class-Path: formsfx-core-11.6.0.jar toolboxfx-21.0.3.jar javafx-graphics
+ -17.0.6-mac.jar javafx-media-17.0.6-mac.jar ikonli-core-12.3.1.jar vali
+ datorfx-0.5.0.jar sqlite-jdbc-3.46.1.2.jar controlsfx-11.2.1.jar ikonli
+ -javafx-12.3.1.jar fxgl-io-17.3.jar javafx-media-17.0.6.jar kotlin-stdl
+ ib-1.8.10.jar jsoup-1.11.2.jar javafx-controls-17.0.6.jar countries-21.
+ 0.3.jar javafx-fxml-17.0.6.jar kotlin-stdlib-common-1.8.10.jar fxgl-gam
+ eplay-17.3.jar toolbox-21.0.5.jar slf4j-simple-2.0.2.jar fxgl-scene-17.
+ 3.jar javafx-base-17.0.6-mac.jar jackson-core-2.14.2.jar tilesfx-21.0.3
+ .jar fxgl-core-17.3.jar javafx-web-17.0.6-mac.jar slf4j-api-2.0.2.jar s
+ torage-4.0.17.jar fxgl-entity-17.3.jar bootstrapfx-core-0.4.0.jar smppa
+ rser-1.jar heatmap-21.0.3.jar javafx-swing-17.0.6-mac.jar ds-pluginload
+ er-1.jar ds-zipper-1.jar javafx-graphics-17.0.6.jar jackson-annotations
+ -2.14.2.jar lifecycle-4.0.17.jar jackson-databind-2.14.2.jar javafx-fxm
+ l-17.0.6-mac.jar javafx-swing-17.0.6.jar ds-plugin-1.jar javafx-base-17
+ .0.6.jar javafx-web-17.0.6.jar javafx-controls-17.0.6-mac.jar audio-4.0
+ .17.jar fxgl-17.3.jar annotations-13.0.jar util-4.0.17.jar
+
