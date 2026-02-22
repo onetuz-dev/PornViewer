@@ -13,6 +13,7 @@ public class UserPreferences {
         try (Connection connection = DriverManager.getConnection(PREFERENCES);
              Statement statement = connection.createStatement()) {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Prefs (id TEXT, pvva TEXT)");
+            statement.executeUpdate("INSERT OR IGNORE INTO Prefs VALUES ('0000', 'p365')");
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
