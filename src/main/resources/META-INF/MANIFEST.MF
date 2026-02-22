@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Main-Class: com.plovdev.pronviewer.Launcher
+Main-Class: com.plovdev.pornviewer.Launcher
 Class-Path: formsfx-core-11.6.0.jar toolboxfx-21.0.3.jar javafx-graphics
  -17.0.6-mac.jar javafx-media-17.0.6-mac.jar ikonli-core-12.3.1.jar vali
  datorfx-0.5.0.jar sqlite-jdbc-3.46.1.2.jar controlsfx-11.2.1.jar ikonli

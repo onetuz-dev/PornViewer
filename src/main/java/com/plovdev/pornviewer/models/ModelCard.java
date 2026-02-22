@@ -1,0 +1,98 @@
+package com.plovdev.pornviewer.models;
+
+import com.plovdev.pornviewer.events.ClickEvent;
+import com.plovdev.pornviewer.events.listeners.ClickListener;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ModelCard extends PornCard {
+    private static final Logger log = LoggerFactory.getLogger(ModelCard.class);
+    private ModelInfo modelInfo;
+    private final Pane pane;
+    private final ClickListener listener = new ClickListener();
+
+    public void setModelInfo(ModelInfo modelInfo) {
+        this.modelInfo = modelInfo;
+    }
+
+    public void setModelInfo() {
+    }
+
+    public ModelInfo getModelInfo() {
+        return modelInfo;
+    }
+
+    public Pane getPane() {
+        return pane;
+    }
+
+    public ModelCard(ModelInfo modelInfo, Pane p) {
+        this.modelInfo = modelInfo;
+        pane = p;
+    }
+
+    @Override
+    public Pane display() {
+        StackPane mainContainer = new StackPane();
+
+        ImageView view = new ImageView(new Image(modelInfo.getAvatar()));
+        view.setSmooth(true);
+        view.getStyleClass().add("video-preview");
+        view.setPreserveRatio(true);
+
+        Hyperlink titleLabel = new Hyperlink(modelInfo.getRusName());
+        setTitle(modelInfo.getRusName());
+        titleLabel.setOnAction(e -> listener.notifyListeners(modelInfo));
+        titleLabel.getStyleClass().add("video-title");
+
+        HBox hBox = new HBox(titleLabel);
+        hBox.getStyleClass().add("title-box");
+        VBox box = new VBox(10, view, hBox);
+        box.getStyleClass().add("trailer");
+
+        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+
+        box.minWidthProperty().bind(pane.widthProperty().divide(3.5));
+        box.prefWidthProperty().bind(pane.widthProperty().divide(3.5));
+        box.maxWidthProperty().bind(pane.widthProperty().divide(3.5));
+
+
+        Label county = new Label(modelInfo.getCountry());
+        county.getStyleClass().add("model-country");
+
+        Label videos = new Label(String.valueOf(modelInfo.getVideos()));
+        videos.getStyleClass().add("marker-download");
+
+        Region region = new Region();
+        HBox.setHgrow(region, Priority.ALWAYS);
+
+        HBox infoOverlay = new HBox(county, region, videos);
+        infoOverlay.setVisible(false);
+        infoOverlay.getStyleClass().add("model-hover");
+
+        // Позиционируем overlay поверх изображения
+        StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
+        StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
+
+        // Обработчики наведения
+        mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
+        mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
+
+        mainContainer.getChildren().addAll(box, infoOverlay);
+        getChildren().add(mainContainer);
+        return this;
+    }
+
+    public void addListener(ClickEvent event) {
+        listener.addListener(event);
+    }
+}

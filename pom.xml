@@ -121,31 +121,6 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.plovdev</groupId>
-            <artifactId>ds-pluginloader</artifactId>
-            <version>1</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.plovdev</groupId>
-            <artifactId>ds-plugin</artifactId>
-            <version>1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.plovdev</groupId>
-            <artifactId>ds-zipper</artifactId>
-            <version>1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.plovdev</groupId>
-            <artifactId>smpparser</artifactId>
-            <version>1</version>
-        </dependency>
-
-
-
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.10.2</version>
@@ -179,7 +154,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.plovdev.pronviewer/com.plovdev.pronviewer.Launcher</mainClass>
+                            <mainClass>com.plovdev.pronviewer/com.plovdev.pornviewer.Launcher</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
