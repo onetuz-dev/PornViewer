@@ -2,6 +2,7 @@ package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.gui.video.DownloadedVideoPlayerPane;
 import com.plovdev.pornviewer.utility.DialogShower;
+import com.plovdev.pornviewer.utility.files.FileUtils;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -67,7 +68,7 @@ public class DownloadedVideoCard extends VideoCard {
     }
 
     public String getPath() {
-        return path;
+        return FileUtils.replaceFileToHttpPath(path);
     }
 
     public void setPath(String path) {
@@ -90,7 +91,6 @@ public class DownloadedVideoCard extends VideoCard {
         anchorPane.prefWidthProperty().bind(pane.widthProperty().divide(1.03));
         anchorPane.maxWidthProperty().bind(pane.widthProperty().divide(1.03));
 
-        MediaPlayer player = new MediaPlayer(new Media(path));
         ImageView view = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/plovdev/pornviewer/download.png"))));
         view.setFitHeight(70);
         view.setFitWidth(70);
@@ -138,8 +138,14 @@ public class DownloadedVideoCard extends VideoCard {
         anchorPane.getChildren().add(delete);
 
         getStyleClass().add("download-video-card");
-        player.setOnReady(() -> durLabel.setText(getVideoDuration(player.getTotalDuration())));
-        durLabel.setText(getVideoDuration(player.getTotalDuration()));
+
+        try {
+            MediaPlayer player = new MediaPlayer(new Media(path));
+            player.setOnReady(() -> durLabel.setText(getVideoDuration(player.getTotalDuration())));
+            durLabel.setText(getVideoDuration(player.getTotalDuration()));
+        } catch (Exception e) {
+            log.error("Error to show file info: ", e);
+        }
 
         getChildren().add(anchorPane);
         return this;

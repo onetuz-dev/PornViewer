@@ -127,7 +127,7 @@ public class DownloadsPane extends AnchorPane {
         return () -> {
             try (Stream<Path> stream = Files.walk(FileUtils.getPvDownloadsPath())) {
                 List<Path> paths = stream.toList();
-                List<DownloadedVideoCard> cards = paths.stream().filter(e -> e.toString().endsWith(".mp4")).map(p -> {
+                List<DownloadedVideoCard> cards = paths.stream().filter(Files::isRegularFile).map(p -> {
                     DownloadedVideoCard card = new DownloadedVideoCard(pane);
                     try {
                         File file = p.toFile();

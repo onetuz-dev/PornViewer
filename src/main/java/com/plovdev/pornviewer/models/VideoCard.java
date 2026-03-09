@@ -5,7 +5,6 @@ import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
-import com.plovdev.pornviewer.utility.files.FileUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
@@ -193,7 +192,7 @@ public class VideoCard extends PornCard {
     protected MenuItem getLoader(String qual) {
         MenuItem item = new MenuItem(qual);
         item.setOnAction(e -> {
-            Thread thread = new Thread(() -> handler.downloadPorn(info.getUrls().get(qual), FileUtils.getPvDownloadsPath() + "/" + getTitle() + "-" + qual + ".mp4"));
+            Thread thread = new Thread(() -> handler.downloadPorn(info.getUrls().get(qual), getTitle()));
             thread.start();
         });
         return item;

@@ -118,8 +118,8 @@ public class FavoritePane extends AnchorPane {
         cardCopy.setDuration(videoCard.getDuration());
         cardCopy.setViews(videoCard.getViews());
         cardCopy.setRating(videoCard.getRating());
-        cardCopy.setInfo(videoCard.getInfo()); // Осторожно! Если Info mutable, нужно копировать и его
-        cardCopy.setFavorite(true); // Важно! Устанавливаем статус сразу
+        cardCopy.setInfo(videoCard.getInfo());
+        cardCopy.setFavorite(true);
         return cardCopy;
     }
 

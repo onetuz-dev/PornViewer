@@ -9,7 +9,9 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
@@ -58,7 +60,7 @@ public class CipherManager {
             cipher.init(Cipher.ENCRYPT_MODE, key, spec);
 
             byte[] encrypted = cipher.doFinal(to.getBytes());
-            return Base64.getEncoder().encodeToString(encrypted);
+            return Base64.getUrlEncoder().encodeToString(encrypted);
         } catch (Exception e) {
             logger.error("Произошла ошибка шифрования коючей: {}", e.getMessage());
         }
@@ -79,5 +81,29 @@ public class CipherManager {
             logger.error("Произошла ошибка расшифровки ключей: {}", e.getMessage());
         }
         return from;
+    }
+
+    /**
+     * Вычисляет MD5 хеш строки
+     * Всегда возвращает 32 шестнадцатеричных символа (lowercase)
+     */
+    public static String md5(String text) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(text.getBytes(StandardCharsets.UTF_8));
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : digest) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("MD5 algorithm not available", e);
+        }
     }
 }
