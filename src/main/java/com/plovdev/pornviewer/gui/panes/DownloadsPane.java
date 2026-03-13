@@ -7,7 +7,9 @@ import com.plovdev.pornviewer.models.DownloadedVideoCard;
 import com.plovdev.pornviewer.models.DownloadingVideoCard;
 import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.utility.constants.EntryEventTypes;
+import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
+import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,11 +19,15 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -35,9 +41,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class DownloadsPane extends AnchorPane {
+    private static final Logger log = LoggerFactory.getLogger(DownloadsPane.class);
     private final ObservableList<Pane> originNots = FXCollections.observableArrayList();
     private boolean isSelf = false;
     private final DateTimeFormatter createFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+    private final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public DownloadsPane() {
         BorderPane root = new BorderPane();
@@ -135,14 +143,14 @@ public class DownloadsPane extends AnchorPane {
                         FileTime time = attributes.creationTime();
                         LocalDateTime dateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneId.systemDefault());
                         card.setDate(dateTime.format(createFormatter));
-                        card.setTitle(p.getFileName().toString());
+                        card.setTitle(getFileName(p.getFileName().toString()));
                         card.setPath(file.toURI().toString());
 
                         card.setDeleteRun(() -> {
                             isSelf = card.isSelf();
                             try {
-                                File toDelete = new File(card.getPath().substring(card.getPath().indexOf(':') + 1));
-                                System.out.println("File deleted: " + toDelete.delete());
+                                String filePath = URLDecoder.decode(card.getOriginalPath(), StandardCharsets.UTF_8).substring(5);
+                                log.info("File {} deleted: {}", filePath, Files.deleteIfExists(Path.of(filePath)));
 
                                 pane.getChildren().forEach(fp -> {
                                     if (fp instanceof VideoCard vc) {
@@ -177,5 +185,11 @@ public class DownloadsPane extends AnchorPane {
                 System.out.println(e.getMessage());
             }
         };
+    }
+    private String getFileName(String name) {
+        if (name.endsWith(FileUtils.PORN_VIEWER_SIGN)) {
+            name = cipherManager.decrypt(name.replace(FileUtils.PORN_VIEWER_SIGN, "")) + "#D";
+        }
+        return name;
     }
 }

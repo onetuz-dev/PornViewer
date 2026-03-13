@@ -233,8 +233,8 @@ public class VideoPlyer extends StackPane {
     }
 
     public void stop() {
-        mediaPlayer.dispose();
         mediaPlayer.stop();
+        mediaPlayer.dispose();
     }
 
     public void pause() {

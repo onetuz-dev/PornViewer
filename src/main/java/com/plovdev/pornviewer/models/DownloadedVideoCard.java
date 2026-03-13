@@ -70,6 +70,9 @@ public class DownloadedVideoCard extends VideoCard {
     public String getPath() {
         return FileUtils.replaceFileToHttpPath(path);
     }
+    public String getOriginalPath() {
+        return path;
+    }
 
     public void setPath(String path) {
         this.path = path;
@@ -139,12 +142,14 @@ public class DownloadedVideoCard extends VideoCard {
 
         getStyleClass().add("download-video-card");
 
-        try {
-            MediaPlayer player = new MediaPlayer(new Media(path));
-            player.setOnReady(() -> durLabel.setText(getVideoDuration(player.getTotalDuration())));
-            durLabel.setText(getVideoDuration(player.getTotalDuration()));
-        } catch (Exception e) {
-            log.error("Error to show file info: ", e);
+        if (path.endsWith(".mp4")) {
+            try {
+                MediaPlayer player = new MediaPlayer(new Media(path));
+                player.setOnReady(() -> durLabel.setText(getVideoDuration(player.getTotalDuration())));
+                durLabel.setText(getVideoDuration(player.getTotalDuration()));
+            } catch (Exception e) {
+                log.error("Error to show file info: ", e);
+            }
         }
 
         getChildren().add(anchorPane);

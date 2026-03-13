@@ -176,11 +176,6 @@ public class ModelsPane extends AnchorPane {
                 System.out.println("handled");
                 List<PornCard> cards = pornParser.getAll(handler.requestPorn(url));
                 System.out.println("parsed");
-                try {
-                    Toolkit.getDefaultToolkit().beep();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
                 cards.forEach(e -> {
                     Pane card = e.display();
                     originNots.add(card);

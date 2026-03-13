@@ -63,15 +63,56 @@ public class ContentUtils {
             long alignedStart = start - skip;
             raf.seek(alignedStart);
 
-            int totalToRead = (int) (length + skip);
-            byte[] buffer = new byte[totalToRead];
-            raf.readFully(buffer);
+            // Инициализируем шифр ОДИН РАЗ на начало выровненного блока
             Cipher cipher = VD.createCipher(Cipher.DECRYPT_MODE, alignedStart);
-            byte[] decrypted = cipher.doFinal(buffer);
-            os.write(decrypted, skip, (int) length);
+
+            // Буфер 128 КБ — золотая середина
+            byte[] buffer = new byte[128 * 1024];
+            long totalSent = 0;
+            long totalToProcess = length + skip;
+            long processedCount = 0;
+
+            while (processedCount < totalToProcess) {
+                // Считаем, сколько байт прочитать в этой итерации
+                int toRead = (int) Math.min(buffer.length, totalToProcess - processedCount);
+                int read = raf.read(buffer, 0, toRead);
+                if (read == -1) break;
+
+                // Расшифровываем только прочитанный кусок
+                byte[] decrypted = cipher.update(buffer, 0, read);
+
+                if (decrypted != null && decrypted.length > 0) {
+                    int offset = 0;
+                    int lenToWrite = decrypted.length;
+
+                    // Если это самое начало, отрезаем skip
+                    if (totalSent == 0 && skip > 0) {
+                        offset = skip;
+                        lenToWrite -= skip;
+                    }
+
+                    // Пишем в поток. Если клиент отключился — ловим ошибку и выходим
+                    try {
+                        os.write(decrypted, offset, lenToWrite);
+                        totalSent += lenToWrite;
+                    } catch (IOException e) {
+                        log.info("Stream interrupted: Client disconnected.");
+                        return;
+                    }
+                }
+                processedCount += read;
+            }
+
+            // Финализируем (для CTR NoPadding это формальность, но нужна для очистки ресурсов Cipher)
+            byte[] finalBlock = cipher.doFinal();
+            if (finalBlock != null && finalBlock.length > 0 && totalSent < length) {
+                os.write(finalBlock);
+            }
+
             os.flush();
         }
     }
+
 
     public static File checkFile(HttpExchange exchange, Map<String, String> params) throws Exception {
         String filePath = params.get("file");
@@ -103,7 +144,7 @@ public class ContentUtils {
         return file;
     }
 
-    private static String buildFilePath(String name) {
+    public static String buildFilePath(String name) {
         return FileUtils.getPvDownloadsPath() + name;
     }
 }

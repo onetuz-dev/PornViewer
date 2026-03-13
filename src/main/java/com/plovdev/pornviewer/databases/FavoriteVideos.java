@@ -4,14 +4,29 @@ import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
 import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.utility.files.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FavoriteVideos {
     private static final String FAVORITES = FileUtils.getPVJDBCPathProtocol();
+    private static final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    private static final Logger log = LoggerFactory.getLogger(FavoriteVideos.class);
+    private static final Connection con;
+    static {
+        try {
+            con = DriverManager.getConnection(FAVORITES);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void createTable() {
         try (Connection connection = DriverManager.getConnection(FAVORITES);
              Statement statement = connection.createStatement()) {
@@ -78,9 +93,9 @@ public class FavoriteVideos {
         PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
         PornParser parser = adapter.getParser();
 
-        try (Connection con = DriverManager.getConnection(FAVORITES);
-             Statement stt = con.createStatement();
-             ResultSet set = stt.executeQuery("SELECT * FROM Favorites")) {
+        try {
+            Statement stt = con.createStatement();
+            ResultSet set = stt.executeQuery("SELECT * FROM Favorites");
 
             while (set.next()) {
                 VideoCard ret = new VideoCard();
@@ -91,7 +106,6 @@ public class FavoriteVideos {
                 ret.setDuration(set.getString("duration"));
                 ret.setRating(set.getString("rating"));
                 ret.setViews(Integer.parseInt(set.getString("views")));
-                ret.setInfo(parser.parseVideo(set.getString("url")));
                 ret.setFavorite(true);
                 ret.setId(set.getString("id"));
                 list.add(ret);

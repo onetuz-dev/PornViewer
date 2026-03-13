@@ -89,8 +89,8 @@ public class SafeHttpHandler implements HttpHandler {
     private Chunk parseChunk(String range) {
         range = range.substring(6); // starts with bytes=
 
-        long start = Integer.parseInt(range.substring(0, range.lastIndexOf("-")));
-        long end = Integer.parseInt(range.substring(range.lastIndexOf("-") + 1));
+        long start = Long.parseLong(range.substring(0, range.lastIndexOf("-")));
+        long end = Long.parseLong(range.substring(range.lastIndexOf("-") + 1));
         return new Chunk(start, end);
     }
 }

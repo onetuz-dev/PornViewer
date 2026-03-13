@@ -89,11 +89,6 @@ public class MainPagination {
                 System.out.println("handled");
                 List<PornCard> cards = pornParser.getAll(htmlPage);
                 System.out.println("parsed");
-                try {
-                    Toolkit.getDefaultToolkit().beep();
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
                 cards.forEach(e -> {
                     Pane card = e.display();
                     Platform.runLater(() -> pane.getChildren().add(card));

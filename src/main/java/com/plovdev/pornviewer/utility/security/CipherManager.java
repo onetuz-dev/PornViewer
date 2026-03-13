@@ -73,7 +73,7 @@ public class CipherManager {
             Cipher cipher = Cipher.getInstance(ALG);
             cipher.init(Cipher.DECRYPT_MODE, key, spec);
 
-            byte[] decoded = Base64.getDecoder().decode(from);
+            byte[] decoded = Base64.getUrlDecoder().decode(from);
             byte[] decrypted = cipher.doFinal(decoded);
 
             return new String(decrypted);

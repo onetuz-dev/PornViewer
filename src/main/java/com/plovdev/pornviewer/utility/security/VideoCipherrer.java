@@ -41,9 +41,9 @@ public class VideoCipherrer {
     /**
      * Расшифровывает часть массива байтов с любой позиции
      */
-    public byte[] decrypt(byte[] bytes, int offset, int length, long position) {
+    public void decrypt(byte[] bytes, int offset, int length, long position) {
         byte[] data = Arrays.copyOfRange(bytes, offset, offset + length);
-        return process(data, position, Cipher.DECRYPT_MODE);
+        process(data, position, Cipher.DECRYPT_MODE);
     }
 
     /**

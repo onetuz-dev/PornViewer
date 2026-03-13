@@ -54,7 +54,7 @@ public class VideoCard extends PornCard {
     }
 
     public void setInfo(VideoInfo info) {
-        if (this.info == null) this.info = info;
+        this.info = info;
     }
 
     public String getDuration() {
