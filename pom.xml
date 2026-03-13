@@ -13,7 +13,7 @@
         <module>core</module>
         <module>porno365</module>
         <module>database</module>
-        <module>ul</module>
+        <module>ui</module>
         <module>security</module>
         <module>services</module>
     </modules>
