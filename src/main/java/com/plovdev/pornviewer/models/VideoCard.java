@@ -23,14 +23,39 @@ public class VideoCard extends PornCard {
     protected String duration;
     protected int views;
     protected String rating;
-    protected VideoInfo info = null;
-    protected boolean isFavorite = false;
+    protected VideoInfo info;
+    protected boolean isFavorite;
     private final SVGPath favPath = new SVGPath();
 
     protected final PBPornHandler handler = new PBPornHandler();
 
     public boolean isFavorite() {
         return isFavorite;
+    }
+
+    public VideoCard(int id, String title, String url, String pic, String duration, int views, String rating, VideoInfo info, boolean isFavorite) {
+        super(id, title, url, pic);
+        this.duration = duration;
+        this.views = views;
+        this.rating = rating;
+        this.info = info;
+        this.isFavorite = isFavorite;
+    }
+
+    public VideoCard(int id, String title, String url, String pic, String duration, int views, String rating) {
+        super(id, title, url, pic);
+        this.duration = duration;
+        this.views = views;
+        this.rating = rating;
+        this.info = null;
+        this.isFavorite = false;
+    }
+
+    public VideoCard(int id, String title, String url, String pic) {
+        super(id, title, url, pic);
+    }
+    public VideoCard() {
+
     }
 
     public void setFavorite(boolean favorite) {
@@ -41,12 +66,12 @@ public class VideoCard extends PornCard {
     public void makeFavorite() {
         if (isFavorite) {
             System.out.println("Adding to favorite");
-            FavoriteVideos.add(this);
+            FavoriteVideos.add(FavoriteVideo.ofVideoCard(this));
         } else {
             System.out.println("Removing from favorite");
             FavoriteVideos.remove(String.valueOf(getCardId()));
         }
-        FavoriteListener.notifyListeners(this);
+        FavoriteListener.notifyListeners(FavoriteVideo.ofVideoCard(this));
     }
 
     public VideoInfo getInfo() {
@@ -82,7 +107,7 @@ public class VideoCard extends PornCard {
     }
 
     @Override
-    public Pane display() {
+    public void render() {
         System.out.println("Displaying");
         DefPornParser parser = new DefPornParser();
         // Главный контейнер - StackPane для наложения элементов
@@ -178,7 +203,6 @@ public class VideoCard extends PornCard {
         });
 
         getChildren().add(mainContainer);
-        return this;
     }
 
     private void showContextMenu(ImageView node, double x, double y) {

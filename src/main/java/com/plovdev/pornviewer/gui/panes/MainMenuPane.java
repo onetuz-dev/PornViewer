@@ -8,7 +8,6 @@ import com.plovdev.pornviewer.gui.filters.TrinaglePaginationBlock;
 import com.plovdev.pornviewer.gui.panes.pagination.MainPagination;
 import com.plovdev.pornviewer.httpquering.*;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
-import com.plovdev.pornviewer.models.PornCard;
 import com.plovdev.pornviewer.models.VideoCard;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -16,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 
 import java.net.URLEncoder;
@@ -24,11 +24,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainMenuPane extends AnchorPane {
-    private final ObservableList<Pane> originNots = FXCollections.observableArrayList();
+    private final ObservableList<VideoCard> originNots = FXCollections.observableArrayList();
     private final PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
     private final Resourcer resourcer = adapter.getResourcer();
     private final PornChecker checker = adapter.getChecker();
     private final PornHandler handler = new PBPornHandler();
+    private static final double TRIGGER_THRESHOLD = 300.0;
+    private String CURRENT_URL = resourcer.baseUrl();
+    private double totalDeltaY = 0;
 
     public MainMenuPane() {
         FlowPane pane = new FlowPane(50, 50);
@@ -96,7 +99,9 @@ public class MainMenuPane extends AnchorPane {
             String txt = field.getText();
             txt = txt.replace("/", "");
             if (!txt.isEmpty()) {
-                runPornParsing(pane, resourcer.baseUrl() + resourcer.searchUrl() + URLEncoder.encode(field.getText(), Charset.defaultCharset()) + "/popular");
+                String url = resourcer.baseUrl() + resourcer.searchUrl() + URLEncoder.encode(field.getText(), Charset.defaultCharset()) + "/popular";
+                runPornParsing(pane, url);
+                CURRENT_URL = url;
             }
         });
         field.textProperty().addListener((e1, e2, e3) -> {
@@ -119,6 +124,26 @@ public class MainMenuPane extends AnchorPane {
         pornScroll.setFitToHeight(true);
         pornScroll.setFitToWidth(true);
 
+        pornScroll.addEventFilter(ScrollEvent.SCROLL, e -> {
+            if (pornScroll.getVvalue() <= 0.01 && e.getDeltaY() > 0) {
+                if (e.isInertia()) {
+                    totalDeltaY = 0;
+                    pane.setTranslateY(0);
+                    return;
+                }
+                updateDelta(pane, e.getDeltaY());
+                if (totalDeltaY >= TRIGGER_THRESHOLD) {
+                    runPornParsing(pane, CURRENT_URL);
+                    totalDeltaY = 0;
+                    pane.setTranslateY(0);
+                    e.consume();
+                }
+            } else {
+                totalDeltaY = 0;
+                pane.setTranslateY(0);
+            }
+        });
+
         root.setCenter(pornScroll);
 
         getChildren().addAll(root, manager);
@@ -131,6 +156,7 @@ public class MainMenuPane extends AnchorPane {
             if (t == 0) {
                 runPornParsing(pane, e);
                 pagination.setBaseUrl(e);
+                CURRENT_URL = e;
             }
         });
 
@@ -146,6 +172,23 @@ public class MainMenuPane extends AnchorPane {
         });
     }
 
+    private double calculateRubberPull(double delta) {
+        if (delta <= 0) return 0;
+        double normalized = Math.min(delta / TRIGGER_THRESHOLD, 2.0);
+        if (normalized <= 1.0) {
+            return TRIGGER_THRESHOLD * 0.4 * Math.pow(normalized, 1.5);
+        } else {
+            double extra = normalized - 1.0;
+            return TRIGGER_THRESHOLD * 0.4 + TRIGGER_THRESHOLD * 0.3 * Math.log1p(extra);
+        }
+    }
+
+    private void updateDelta(FlowPane pane, double delta) {
+        totalDeltaY += delta;
+        pane.setTranslateY(calculateRubberPull(totalDeltaY));
+    }
+
+
     private void runPornParsing(FlowPane pane, String url) {
         pane.getChildren().clear();
         originNots.clear();
@@ -159,13 +202,13 @@ public class MainMenuPane extends AnchorPane {
                 PornParser pornParser = adapter.getParser();
 
                 System.out.println("handled");
-                List<PornCard> cards = pornParser.getAll(handler.requestPorn(url));
+                List<VideoCard> cards = pornParser.getAllVideos(handler.requestPorn(url));
                 System.out.println("parsed");
 
                 cards.forEach(e -> {
-                    Pane card = e.display();
-                    originNots.add(card);
-                    Platform.runLater(() -> pane.getChildren().add(card));
+                    e.render();
+                    originNots.add(e);
+                    Platform.runLater(() -> pane.getChildren().add(e));
                 });
                 System.out.println("Added");
             } catch (Exception e) {

@@ -9,6 +9,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,37 +24,38 @@ import java.util.concurrent.Future;
 
 public class SexStudsParser implements PornParser {
     private static final String ABS_URL = "https://sex-studentki.live";
+    private static final Logger log = LoggerFactory.getLogger(SexStudsParser.class);
 
     @Override
-    public List<PornCard> getAll(String html) {
+    public List<VideoCard> getAllVideos(String html) {
         Document doc = Jsoup.parse(html);
-        List<PornCard> cards = new ArrayList<>();
+        List<VideoCard> cards = new ArrayList<>();
         try (ExecutorService service = Executors.newFixedThreadPool(10)) {
-            List<Future<PornCard>> futures = new ArrayList<>();
+            List<Future<VideoCard>> futures = new ArrayList<>();
 
             // Используем новый селектор для новых элементов
             Elements elements = doc.select("div.video.trailer");
             elements.stream().limit(45).forEach(e -> {
-                Future<PornCard> future = service.submit(() -> parseVideoBlock(e));
+                Future<VideoCard> future = service.submit(() -> (VideoCard) parseVideoBlock(e));
                 futures.add(future);
             });
 
             futures.forEach(f -> {
                 try {
-                    PornCard card = f.get();
-                    cards.add(card);
+                    cards.add(f.get());
                 } catch (Exception e) {
-                    // Лучше логировать ошибку, чем просто выводить сообщение
-                    // Например: logger.error("Ошибка парсинга видео блока", e);
-                    System.err.println("Ошибка при парсинге видео блока: " + e.getMessage());
-                    // Можно также добавить пустой или дефолтный объект, если нужно продолжить работу
-                    // cards.add(new PornCard()); // Если нужно добавить заглушку
+                    log.error("Errot parsing video card: ", e);
                 }
             });
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при парсинге всех видео блоков", e);
         }
         return cards;
+    }
+
+    @Override
+    public List<ModelCard> getAllModels(String html) {
+        return List.of();
     }
 
     private PornCard parseVideoBlock(Element videoElement) {
@@ -204,18 +207,6 @@ public class SexStudsParser implements PornParser {
 
             // --- Извлечение URL ---
             Map<String, String> links = new HashMap<>();
-            // В новом сайте URL видео могут быть в <video> теге или в других местах.
-            // Пока что оставим пустым, так как из примера видно, что основной источник URL - это <source>.
-            // Но если нужна конкретная логика для разных качеств, то можно добавить.
-            // Пример: если есть выбор качества в div.quality_chooser
-            // Elements urls = doc.select("div.quality_chooser a[href]");
-            // urls.forEach(e -> {
-            //     String key = e.text().trim();
-            //     String url = e.attr("href");
-            //     links.put(key, url);
-            // });
-            // info.setUrls(links);
-
             // Если нужно извлечь URL из <source> тега внутри <video>
             Element videoElement = doc.selectFirst("video");
             if (videoElement != null) {
@@ -229,20 +220,7 @@ public class SexStudsParser implements PornParser {
                     }
                 }
             }
-            // Если нужно извлечь URL из скрипта или других источников, можно добавить логику
-            // Пример:
-            // Elements scripts = doc.select("script");
-            // for (Element script : scripts) {
-            //     String scriptText = script.data();
-            //     if (scriptText.contains("VIDEO_FILE")) {
-            //         // Извлечение VIDEO_FILE из скрипта
-            //         // ...
-            //     }
-            // }
-
             info.setUrls(links);
-
-
             // --- Извлечение категорий ---
             Map<String, String> categs = new HashMap<>();
             // В новом сайте категории находятся в div.categories-page
@@ -259,28 +237,10 @@ public class SexStudsParser implements PornParser {
 
             // --- Извлечение моделей ---
             Map<String, String> mds = new HashMap<>();
-            // Модели могут быть в div.video-header или в тегах
-            // В данном случае, модель может быть в div.video-header или в тегах (если они там есть)
-            // Но в примере она указана как "Автор: Lucker25" в span.author
-            // Для простоты, извлекаем из тегов, если есть
-            // Если нужно извлекать из "Автор: Lucker25", то нужно искать по классу или тексту
-            // Пример:
-            // Elements authorElements = doc.select("span.modifier-type-label:contains(Автор:) + a.tag-modifier");
-            // if (!authorElements.isEmpty()) {
-            //     Element authorLink = authorElements.first();
-            //     String key = authorLink.selectFirst("span.label").text().trim();
-            //     String url = authorLink.attr("href");
-            //     mds.put(key, url);
-            // }
-            // Но если модель в тегах, то:
             Elements models = doc.select("div.tags a[href]");
             models.forEach(e -> {
                 String key = e.text().trim();
                 String url = e.attr("href");
-                // Фильтруем, чтобы не добавлять не относящиеся к моделям теги
-                // Это требует знания структуры тегов
-                // Для примера добавим все теги, которые могут быть моделями
-                // Если нужно более точное извлечение, можно добавить логику фильтрации
                 if (!key.isEmpty()) {
                     mds.put(key, buildAbsoluteUrl(url));
                 }
@@ -337,39 +297,11 @@ public class SexStudsParser implements PornParser {
             });
             info.setTags(tgs);
 
-            // --- Извлечение timecodes ---
             Map<String, String> times = new HashMap<>();
-            // В новом примере timecodes находятся в meta itemprop="description"
-            // Или в div.description > span.description-text
-            // Но они не в виде отдельных элементов span с href
-            // Пример: "Секс на животе — 00:03; разговоры — 00:10; глубокий минет — 00:41; камшот в рот — 02:47, 03:58"
-            // Если нужно извлечь их отдельно, можно сделать парсинг текста
-            // Пока что оставим пустым или используем описание
-            // Для примера можно использовать описание, если оно содержит timecodes
             String descriptionText = doc.selectFirst("span.description-text").text();
-            if (!descriptionText.isEmpty()) {
-                // Пример разбора времени из описания
-                // Это упрощенный пример, может потребоваться более сложная логика
-                // times.put("description", descriptionText); // Можно сохранить описание как таймкод
-                // Или парсить отдельные части
-                // Но так как у нас нет отдельных элементов span с href для таймкодов,
-                // можно оставить пустым или использовать описание
-            }
             info.setTimeCodes(times);
-
-            // --- Извлечение комментариев ---
             List<Comment> commentsList = new ArrayList<>();
-            // Комментарии находятся в div.comments-list
-            // Но для получения списка комментариев нужно больше данных или API
-            // В текущем HTML они не представлены как отдельные элементы
-            // Поэтому пока оставим пустым
-            // Пример:
-            // Elements commentElements = doc.select("div.comment");
-            // commentElements.forEach(commentEl -> {
-            //     Comment comment = new Comment();
-            //     // Извлечение данных из commentEl
-            //     commentsList.add(comment);
-            // });
+            //TODO Извлечь коментарии
             info.setComments(commentsList);
 
         } catch (Exception e) {
@@ -379,20 +311,16 @@ public class SexStudsParser implements PornParser {
     }
 
     private static String buildAbsoluteUrl(String relativePath) {
-        String baseUrl = ABS_URL;
         try {
-            // Проверяем, является ли относительный путь уже абсолютным (начинается с http/https)
             if (relativePath.startsWith("http://") || relativePath.startsWith("https://")) {
                 return relativePath; // Уже абсолютная ссылка
             }
 
-            URL base = new URL(baseUrl);
+            URL base = new URL(ABS_URL);
             URL absolute = new URL(base, relativePath);
             return absolute.toString();
         } catch (MalformedURLException e) {
-            // Обработка ошибки, если URL некорректен
-            System.err.println("Ошибка формирования абсолютного URL: " + e.getMessage());
-            return baseUrl + relativePath; // fallback на конкатенацию (не самый надежный способ)
+            throw new RuntimeException(e);
         }
     }
 }

@@ -46,9 +46,9 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
     }
 
     @Override
-    public Pane display() {
+    public void render() {
+        getChildren().clear();
         AnchorPane anchorPane = new AnchorPane();
-
         progressBar.progressProperty().bind(progress);
         minWidthProperty().bind(pane.widthProperty().divide(1.03));
         prefWidthProperty().bind(pane.widthProperty().divide(1.03));
@@ -128,7 +128,8 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
         stackPane.setClip(clip);
 
         progressBar.prefWidthProperty().bind(stackPane.widthProperty());
-        return new Pane(stackPane);
+
+        getChildren().add(stackPane);
     }
 
     private void addListeners() {
@@ -152,12 +153,16 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
 
                     Path p = Path.of(fileString);
                     File file = p.toFile();
+
                     downloadedVideoCard.setPath(file.toURI().toString());
                     BigDecimal size = new BigDecimal(String.valueOf(file.length())).divide(new BigDecimal("1000000.0"), 10, RoundingMode.HALF_UP);
                     DecimalFormat format = new DecimalFormat("#0.00");
                     downloadedVideoCard.setSize(format.format(size));
 
-                    Platform.runLater(() -> pane.getChildren().set(getById(nodes), downloadedVideoCard.display()));
+                    Platform.runLater(() -> {
+                        downloadedVideoCard.render();
+                        pane.getChildren().set(getById(nodes), downloadedVideoCard);
+                    });
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
@@ -191,7 +196,10 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
                     System.err.println(e.getMessage());
                 }
 
-                Platform.runLater(() -> pane.getChildren().addFirst(display()));
+                Platform.runLater(() -> {
+                    render();
+                    pane.getChildren().addFirst(DownloadingVideoCard.this);
+                });
             }
 
             @Override

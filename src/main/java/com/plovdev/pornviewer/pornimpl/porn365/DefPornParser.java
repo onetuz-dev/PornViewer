@@ -9,6 +9,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,23 +21,50 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class DefPornParser implements PornParser {
+    private static final Logger log = LoggerFactory.getLogger(DefPornParser.class);
+
     @Override
-    public List<PornCard> getAll(String html) {
+    public List<VideoCard> getAllVideos(String html) {
         Document doc = Jsoup.parse(html);
-        List<PornCard> cards = new ArrayList<>();
+        List<VideoCard> cards = new ArrayList<>();
         try (ExecutorService service = Executors.newFixedThreadPool(10)) {
-            List<Future<PornCard>> futures = new ArrayList<>();
+            List<Future<VideoCard>> futures = new ArrayList<>();
 
             Elements elements = doc.select("li.video_block");
             elements.stream().limit(45).forEach(e -> {
-                Future<PornCard> future = service.submit(() -> parseVideoBlock(e));
+                Future<VideoCard> future = service.submit(() -> (VideoCard) parseVideoBlock(e));
                 futures.add(future);
             });
 
             futures.forEach(f -> {
                 try {
-                    PornCard card = f.get();
-                    cards.add(card);
+                    cards.add(f.get());
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return cards;
+    }
+
+    @Override
+    public List<ModelCard> getAllModels(String html) {
+        Document doc = Jsoup.parse(html);
+        List<ModelCard> cards = new ArrayList<>();
+        try (ExecutorService service = Executors.newFixedThreadPool(10)) {
+            List<Future<ModelCard>> futures = new ArrayList<>();
+
+            Elements elements = doc.select("li.video_block");
+            elements.stream().limit(45).forEach(e -> {
+                Future<ModelCard> future = service.submit(() -> (ModelCard) parseVideoBlock(e));
+                futures.add(future);
+            });
+
+            futures.forEach(f -> {
+                try {
+                    cards.add(f.get());
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -184,7 +213,7 @@ public class DefPornParser implements PornParser {
             });
             info.setComments(commentsList);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error parsing video: ", e);
         }
         return info;
     }

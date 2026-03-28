@@ -1,5 +1,6 @@
 package com.plovdev.pornviewer.utility.files;
 
+import com.plovdev.pornviewer.utility.security.CipherManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URLEncoder;
@@ -8,22 +9,13 @@ import java.nio.file.Path;
 
 public class FileUtils {
     public final static String PORN_VIEWER_SIGN = "b29a674cce9b3fff1010a658070c8933";
-    public final static String PV_BASE_PATH_WIN = System.getProperty("user.home") + "/PornViewer/";
-    public final static String PV_BASE_PATH_MAC = "/Users/mac/PornViewer/";
-    public final static String PV_BASE_PATH_UNIX = "/usr/PornViewer/";
+    public final static String PV_BASE_PATH = System.getProperty("user.home") + "/PornViewer/";
     public final static String PV_DOWNLOADS = "downloads/";
     public final static String PV_SYSTEM = "system/";
-    public final static String PV_DB_PATH = "pornviewer.db";
+    public final static String PV_DB_PATH = CipherManager.md5("pornviewer.db");
 
     public static String getPVBasePath() {
-        String platform = System.getProperty("os.name").toLowerCase().replace(" ", "");
-        if (platform.contains("mac")) {
-            return PV_BASE_PATH_MAC;
-        } else if (platform.contains("win")) {
-            return PV_BASE_PATH_WIN;
-        } else {
-            return PV_BASE_PATH_UNIX;
-        }
+        return PV_BASE_PATH;
     }
     @NotNull
     public static Path getPvDownloadsPath() {
@@ -35,7 +27,7 @@ public class FileUtils {
     }
     @NotNull
     public static String getPvDbPath() {
-        return getPVBasePath() + PV_DB_PATH;
+        return getPvSystemPath() + PV_DB_PATH;
     }
     @NotNull
     public static String replaceFileToHttpPath(String file) {
@@ -45,6 +37,6 @@ public class FileUtils {
     }
     @NotNull
     public static String getPVJDBCPathProtocol() {
-        return "jdbc:sqlite:" + getPvSystemPath() + PV_DB_PATH;
+        return "jdbc:sqlite:" + getPvDbPath();
     }
 }

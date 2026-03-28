@@ -84,7 +84,7 @@ public class DownloadedVideoCard extends VideoCard {
     }
 
     @Override
-    public Pane display() {
+    public void render() {
         AnchorPane anchorPane = new AnchorPane();
 
         minWidthProperty().bind(pane.widthProperty().divide(1.03));
@@ -153,7 +153,6 @@ public class DownloadedVideoCard extends VideoCard {
         }
 
         getChildren().add(anchorPane);
-        return this;
     }
 
     protected String getVideoDuration(Duration total) {

@@ -1,0 +1,97 @@
+{
+  "resources":{
+  "includes":[{
+    "pattern":"\\Q.env\\E"
+  }, {
+    "pattern":"\\QMETA-INF/fonts.mf\\E"
+  }, {
+    "pattern":"\\QMETA-INF/maven/org.xerial/sqlite-jdbc/pom.properties\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/com.sun.net.httpserver.spi.HttpServerProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.InetAddressResolverProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.URLStreamHandlerProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.nio.channels.spi.SelectorProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.sql.Driver\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.util.spi.ResourceBundleControlProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
+  }, {
+    "pattern":"\\Qcom/plovdev/pornviewer/download.png\\E"
+  }, {
+    "pattern":"\\Qcom/plovdev/pornviewer/white.css\\E"
+  }, {
+    "pattern":"\\Qcom/sun/glass/utils/NativeLibLoader.class\\E"
+  }, {
+    "pattern":"\\Qcom/sun/javafx/scene/control/skin/modena/modena.bss\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/DrawPgram_Color.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/DrawRoundRect_Color.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/FillPgram_Color.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/FillPgram_LinearGradient_PAD.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/FillRoundRect_Color.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/Mask_TextureSuper.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/Solid_TextureRGB.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/prism/es2/glsl/Texture_Color.frag\\E"
+  }, {
+    "pattern":"\\Qcom/sun/scenario/effect/impl/es2/glsl/LinearConvolveShadow_4.frag\\E"
+  }, {
+    "pattern":"\\Qlibfxplugins.dylib\\E"
+  }, {
+    "pattern":"\\Qlibglass.dylib\\E"
+  }, {
+    "pattern":"\\Qlibglib-lite.dylib\\E"
+  }, {
+    "pattern":"\\Qlibgstreamer-lite.dylib\\E"
+  }, {
+    "pattern":"\\Qlibjavafx_font.dylib\\E"
+  }, {
+    "pattern":"\\Qlibjavafx_iio.dylib\\E"
+  }, {
+    "pattern":"\\Qlibjfxmedia.dylib\\E"
+  }, {
+    "pattern":"\\Qlibjfxmedia_avf.dylib\\E"
+  }, {
+    "pattern":"\\Qlibprism_es2.dylib\\E"
+  }, {
+    "pattern":"\\Qorg/sqlite/native/Mac/x86_64/libsqlitejdbc.dylib\\E"
+  }, {
+    "pattern":"\\Qsimplelogger.properties\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/nfc.nrm\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/nfkc.nrm\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/ubidi.icu\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/uprops.icu\\E"
+  }, {
+    "pattern":"java.base:\\Qsun/net/idn/uidna.spp\\E"
+  }, {
+    "pattern":"java.base:\\Qsun/net/www/content-types.properties\\E"
+  }]},
+  "bundles":[{
+    "name":"MediaErrors"
+  }, {
+    "name":"com.sun.javafx.tk.quantum.QuantumMessagesBundle",
+    "locales":[""]
+  }, {
+    "name":"com/sun/javafx/scene/control/skin/resources/controls",
+    "locales":[""]
+  }]
+}

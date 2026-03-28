@@ -1,6 +1,8 @@
 package com.plovdev.pornviewer.databases;
 
 import com.plovdev.pornviewer.utility.files.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,57 +10,63 @@ import java.util.List;
 
 public class UserPreferences {
     private static final String PREFERENCES = FileUtils.getPVJDBCPathProtocol();
+    private static final Connection con;
+    private static final Logger log = LoggerFactory.getLogger(UserPreferences.class);
+
+    static {
+        try {
+            con = DriverManager.getConnection(PREFERENCES);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        createTable();
+    }
 
     public static void createTable() {
-        try (Connection connection = DriverManager.getConnection(PREFERENCES);
-             Statement statement = connection.createStatement()) {
+        try (Statement statement = con.createStatement()) {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Prefs (id TEXT, pvva TEXT)");
             statement.executeUpdate("INSERT OR IGNORE INTO Prefs VALUES ('0000', 'p365')");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to create user prefs: ", e);
         }
     }
 
     public static void dropTable() {
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             Statement stt = con.createStatement()) {
+        try (Statement stt = con.createStatement()) {
             stt.executeUpdate("DROP TABLE Prefs");
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to drop user prefs: ", e);
         }
     }
 
     public static void add(User user) {
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             PreparedStatement stt = con.prepareStatement("INSERT INTO Prefs (id, pvva) VALUES (?,?)")) {
+        try (PreparedStatement stt = con.prepareStatement("INSERT INTO Prefs (id, pvva) VALUES (?,?)")) {
             stt.setString(1, user.getId());
             stt.setString(2, user.getPvva());
 
             stt.executeUpdate();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to add new user: ", e);
         }
     }
 
     public static User get(String id) {
-        User ret = new User();
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             Statement stt = con.createStatement();
-             ResultSet set = stt.executeQuery("SELECT * FROM Prefs WHERE id = '" + id + "'")) {
-
-            if (set.next()) {
-                return new User(set.getString("pvva"), id);
+        try (PreparedStatement stt = con.prepareStatement("SELECT * FROM Prefs WHERE id = ?")) {
+            stt.setString(1, id);
+            try (ResultSet set = stt.executeQuery()) {
+                if (set.next()) {
+                    return new User(set.getString("pvva"), id);
+                }
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to get user: ", e);
         }
-        return ret;
+        return new User("porno365", "0000");
     }
 
     public static List<User> getAll() {
         List<User> list = new ArrayList<>();
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             Statement stt = con.createStatement();
+        try (Statement stt = con.createStatement();
              ResultSet set = stt.executeQuery("SELECT * FROM Prefs")) {
 
             while (set.next()) {
@@ -68,31 +76,29 @@ public class UserPreferences {
                 list.add(ret);
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to get all users: ", e);
         }
         return list;
     }
 
     public static void update(String key, String val, String id) {
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             PreparedStatement stt = con.prepareStatement("UPDATE Prefs SET " + key + " = ? WHERE id = ?")) {
+        try (PreparedStatement stt = con.prepareStatement("UPDATE Prefs SET " + key + " = ? WHERE id = ?")) {
 
             stt.setString(1, val.trim());
             stt.setString(2, id.trim());
 
             stt.executeUpdate();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to update user({}) key {} to {}: ", key, id, val, e);
         }
     }
 
     public static void remove(String id) {
-        try (Connection con = DriverManager.getConnection(PREFERENCES);
-             Statement stat = con.createStatement()) {
-
-            stat.executeUpdate("DELETE FROM Prefs WHERE id = " + id);
+        try (PreparedStatement stt = con.prepareStatement("DELETE FROM Prefs WHERE id = ?")) {
+            stt.setString(1, id);
+            stt.executeUpdate();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to remove user {} :", id, e);
         }
     }
 }

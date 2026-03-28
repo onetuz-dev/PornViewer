@@ -16,6 +16,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
 
 public class DownloadsPane extends AnchorPane {
     private static final Logger log = LoggerFactory.getLogger(DownloadsPane.class);
-    private final ObservableList<Pane> originNots = FXCollections.observableArrayList();
+    private final ObservableList<DownloadedVideoCard> originNots = FXCollections.observableArrayList();
     private boolean isSelf = false;
     private final DateTimeFormatter createFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
@@ -75,7 +76,12 @@ public class DownloadsPane extends AnchorPane {
         FilterBox filterBox = new FilterBox(pane);
         filterBox.setPrefSize(300, 100);
 
-        vBox.getChildren().addAll(new HBox(field), new HBox(30, new VBox(10, box1, box3), new VBox(10, box4, box6), r1));
+        Label clear = new Label("✕");
+        clear.setVisible(false);
+        clear.setOnMousePressed(e -> field.setText(""));
+        clear.getStyleClass().add("clear-search");
+
+        vBox.getChildren().addAll(new HBox(field, clear), new HBox(30, new VBox(10, box1, box3), new VBox(10, box4, box6), r1));
         vBox.setPadding(new Insets(0, 0, 30, 0));
         root.setTop(new VBox(vBox));
 
@@ -86,6 +92,8 @@ public class DownloadsPane extends AnchorPane {
         runPornParsing(pane);
 
         field.textProperty().addListener((e1, e2, e3) -> {
+            clear.setVisible(!e3.isEmpty());
+
             List<Pane> panes = new ArrayList<>(originNots);
             panes = panes.stream().filter(e -> {
                 VideoCard card = (VideoCard) e;
@@ -119,7 +127,7 @@ public class DownloadsPane extends AnchorPane {
 
         EventListener.addListener(e -> {
             if (e.startsWith("START_DWONLOAD:")) {
-                String name = e.substring(e.indexOf(':')+1);
+                String name = e.substring(e.indexOf(':') + 1);
                 DownloadingVideoCard card = new DownloadingVideoCard(pane);
                 card.setTitle(name);
             }
@@ -150,16 +158,11 @@ public class DownloadsPane extends AnchorPane {
                             isSelf = card.isSelf();
                             try {
                                 String filePath = URLDecoder.decode(card.getOriginalPath(), StandardCharsets.UTF_8).substring(5);
-                                log.info("File {} deleted: {}", filePath, Files.deleteIfExists(Path.of(filePath)));
+                                boolean isDeleted = Files.deleteIfExists(Path.of(filePath));
+                                log.info("File {} deleted: {}", filePath, isDeleted);
 
-                                pane.getChildren().forEach(fp -> {
-                                    if (fp instanceof VideoCard vc) {
-                                        if (vc.getTitle().equals(card.getTitle())) {
-                                            Platform.runLater(() -> pane.getChildren().remove(fp));
-                                            originNots.remove(fp);
-                                        }
-                                    }
-                                });
+                                Platform.runLater(() -> pane.getChildren().remove(card));
+                                originNots.remove(card);
                             } catch (Exception e) {
                                 System.err.println(e.getMessage());
                             }
@@ -177,8 +180,8 @@ public class DownloadsPane extends AnchorPane {
                 Platform.runLater(() -> pane.getChildren().clear());
 
                 cards.forEach(e -> {
-                    DownloadedVideoCard card = (DownloadedVideoCard) e.display();
-                    originNots.add(card);
+                    e.render();
+                    originNots.add(e);
                 });
                 Platform.runLater(() -> pane.getChildren().addAll(originNots));
             } catch (Exception e) {
@@ -186,6 +189,7 @@ public class DownloadsPane extends AnchorPane {
             }
         };
     }
+
     private String getFileName(String name) {
         if (name.endsWith(FileUtils.PORN_VIEWER_SIGN)) {
             name = cipherManager.decrypt(name.replace(FileUtils.PORN_VIEWER_SIGN, "")) + "#D";

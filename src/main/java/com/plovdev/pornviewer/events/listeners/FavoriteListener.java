@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.events.listeners;
 
 import com.plovdev.pornviewer.events.FavoriteEvent;
-import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.models.FavoriteVideo;
 
 import java.util.ArrayList;
 
@@ -16,7 +16,7 @@ public class FavoriteListener {
         events.remove(e);
     }
 
-    public static void notifyListeners(VideoCard card) {
+    public static void notifyListeners(FavoriteVideo card) {
         for (FavoriteEvent e : events) e.favorite(card);
     }
 }

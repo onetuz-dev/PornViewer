@@ -1,0 +1,9 @@
+[
+  {
+    "name": "java.lang.ClassLoader",
+    "methods": [
+      {"name": "getSystemClassLoader", "parameterTypes": []},
+      {"name": "loadLibrary", "parameterTypes": ["java.lang.String"]}
+    ]
+  }
+]

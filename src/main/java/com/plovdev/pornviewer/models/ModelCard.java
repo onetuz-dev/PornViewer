@@ -39,7 +39,7 @@ public class ModelCard extends PornCard {
     }
 
     @Override
-    public Pane display() {
+    public void render() {
         StackPane mainContainer = new StackPane();
 
         ImageView view = new ImageView(new Image(modelInfo.getAvatar()));
@@ -89,7 +89,6 @@ public class ModelCard extends PornCard {
 
         mainContainer.getChildren().addAll(box, infoOverlay);
         getChildren().add(mainContainer);
-        return this;
     }
 
     public void addListener(ClickEvent event) {

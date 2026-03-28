@@ -58,13 +58,11 @@ public class PBPornHandler implements PornHandler {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            System.out.println(response.statusCode() + " - code from requester");
             if (response.statusCode() == 200) {
                 return response.body();
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error("Error to request porn: ", e);
         }
         return "";
     }

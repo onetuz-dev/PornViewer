@@ -5,28 +5,23 @@ import com.plovdev.pornviewer.httpquering.*;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.ModelCard;
 import com.plovdev.pornviewer.models.ModelInfo;
-import com.plovdev.pornviewer.models.PornCard;
+import com.plovdev.pornviewer.models.VideoCard;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 
-import java.awt.*;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ModelsPane extends AnchorPane {
-    private final ObservableList<Pane> originNots = FXCollections.observableArrayList();
-    private final ObservableList<Pane> loadedModels = FXCollections.observableArrayList();
+    private final ObservableList<ModelCard> originNots = FXCollections.observableArrayList();
+    private final ObservableList<ModelCard> loadedModels = FXCollections.observableArrayList();
     private final Button back = new Button("<--");
     private final Resourcer resourcer;
     private final PornVideoAdapter adapter;
@@ -107,8 +102,10 @@ public class ModelsPane extends AnchorPane {
             panes = panes.stream().filter(e -> {
                 if (e instanceof ModelCard card) {
                     return card.getModelInfo().getRusName().toLowerCase().contains(e3.trim().toLowerCase());
+                } else if (e instanceof VideoCard card) {
+                    return card.getTitle().toLowerCase().contains(e3.trim().toLowerCase());
                 }
-                return true;
+                return false;
             }).toList();
 
             pane.getChildren().setAll(panes);
@@ -146,12 +143,12 @@ public class ModelsPane extends AnchorPane {
                     ModelCard card = new ModelCard(e, pane);
                     card.addListener(info -> {
                         back.setVisible(true);
-                        runModelParsing(pane, info.getUrl());
+                        runModelVideosParsing(pane, info.getUrl());
                     });
-                    Pane p = card.display();
-                    originNots.add(p);
-                    loadedModels.add(p);
-                    Platform.runLater(() -> pane.getChildren().add(p));
+                    card.render();
+                    originNots.add(card);
+                    loadedModels.add(card);
+                    Platform.runLater(() -> pane.getChildren().add(card));
                 });
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -159,14 +156,11 @@ public class ModelsPane extends AnchorPane {
         };
     }
 
-
-    private void runModelParsing(FlowPane pane, String url) {
+    private void runModelVideosParsing(FlowPane pane, String url) {
         pane.getChildren().clear();
-        originNots.clear();
-        Thread.startVirtualThread(getParseModelTask(pane, url));
+        Thread.startVirtualThread(getParseModelVideosTask(pane, url));
     }
-
-    private Runnable getParseModelTask(FlowPane pane, String url) {
+    private Runnable getParseModelVideosTask(FlowPane pane, String url) {
         return () -> {
             try {
                 if (!checker.hasModels()) return;
@@ -174,12 +168,11 @@ public class ModelsPane extends AnchorPane {
                 System.out.println("start");
                 PornParser pornParser = adapter.getParser();
                 System.out.println("handled");
-                List<PornCard> cards = pornParser.getAll(handler.requestPorn(url));
+                List<VideoCard> cards = pornParser.getAllVideos(handler.requestPorn(url));
                 System.out.println("parsed");
                 cards.forEach(e -> {
-                    Pane card = e.display();
-                    originNots.add(card);
-                    Platform.runLater(() -> pane.getChildren().add(card));
+                    e.render();
+                    Platform.runLater(() -> pane.getChildren().add(e));
                 });
             } catch (Exception e) {
                 System.out.println(e.getMessage());

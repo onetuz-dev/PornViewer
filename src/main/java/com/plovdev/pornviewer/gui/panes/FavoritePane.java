@@ -1,25 +1,51 @@
 package com.plovdev.pornviewer.gui.panes;
 
+import com.plovdev.pornviewer.databases.FavoriteGroupProvider;
 import com.plovdev.pornviewer.databases.FavoriteVideos;
+import com.plovdev.pornviewer.databases.UserPreferences;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
-import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.httpquering.PornParser;
+import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
+import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
+import com.plovdev.pornviewer.models.FavoriteVideo;
+import com.plovdev.pornviewer.models.FavoriteVideoInfo;
+import com.plovdev.pornviewer.models.VideoInfo;
+import com.plovdev.pornviewer.utility.JSONSerializer;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FavoritePane extends AnchorPane {
-    private final ObservableList<Pane> originNots = FXCollections.observableArrayList();
+    private static final Logger log = LoggerFactory.getLogger(FavoritePane.class);
+    private final ObservableList<FavoriteVideo> allFavorites = FXCollections.observableArrayList();
+    private final ObservableList<FavoriteVideo> currentList = FXCollections.observableArrayList();
+    private final Map<String, List<FavoriteVideo>> groups = new HashMap<>();
+    private final ToggleButton allToggle = new ToggleButton("Все");
+    protected final PBPornHandler handler = new PBPornHandler();
+    private final ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    private String CURRENT_TOGGLE = "Все";
+
+    private final ToggleGroup userGroups = new ToggleGroup();
+    private final FlowPane pane = new FlowPane(50, 50);
+
 
     public FavoritePane() {
         BorderPane root = new BorderPane();
@@ -48,33 +74,94 @@ public class FavoritePane extends AnchorPane {
         HBox.setHgrow(r1, Priority.ALWAYS);
 
         Region r2 = new Region();
-        HBox.setHgrow(r2, Priority.ALWAYS);
+        VBox.setVgrow(r2, Priority.ALWAYS);
+
+        Region r3 = new Region();
+        HBox.setHgrow(r3, Priority.ALWAYS);
 
         Label clear = new Label("✕");
         clear.setVisible(false);
         clear.setOnMousePressed(e -> field.setText(""));
         clear.getStyleClass().add("clear-search");
 
-        vBox.getChildren().addAll(new HBox(field,clear), new HBox(30, new VBox(10, box1, box3), new VBox(10, box4, box6), r1));
+
+        Button addGroup = new Button("➕");
+        addGroup.getStyleClass().add("add-favorite-group");
+
+        HBox groupsBox = new HBox(10);
+        groupsBox.setMinWidth(500);
+        groupsBox.getStyleClass().add("groups-box");
+        groupsBox.setAlignment(Pos.CENTER_LEFT);
+
+        addGroup.setOnAction(e -> {
+            TextInputDialog enterGroup = new TextInputDialog();
+            enterGroup.setTitle("Enter group name");
+            enterGroup.setContentText("Введите название группы");
+            enterGroup.showAndWait().ifPresent(name -> {
+                log.info("Name: {}", name);
+                if (FavoriteGroupProvider.getAllGroups().contains(name)) {
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle("Adding Error");
+                    alert.setContentText("Данная группа уже существует.");
+                    alert.show();
+                    return;
+                }
+                FavoriteGroupProvider.addGroup(name);
+                addFavoriteGroup(name, groupsBox);
+                groups.put(name, new CopyOnWriteArrayList<>());
+            });
+        });
+
+        Button loadAll = new Button("Скачать все");
+        loadAll.getStyleClass().add("load-all");
+        loadAll.setOnMousePressed(e -> showContextMenu(loadAll, e.getScreenX(), e.getScreenY()));
+
+
+        ScrollPane groupBoxScroll = new ScrollPane(groupsBox);
+        groupBoxScroll.getStyleClass().add("group-box-scroll");
+        groupBoxScroll.setFitToHeight(true);
+        groupBoxScroll.setFitToWidth(false);
+        groupBoxScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        groupBoxScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        groupBoxScroll.prefWidthProperty().bind(widthProperty().divide(1.5));
+
+        HBox controlContainer = new HBox(30, new VBox(10, box1, box3), new VBox(10, box4, box6), r1, new VBox(0, new HBox(r3, loadAll), r2, new HBox(30, groupBoxScroll, addGroup)));
+        vBox.getChildren().addAll(new HBox(field, clear), controlContainer);
         vBox.setPadding(new Insets(0, 0, 30, 0));
         root.setTop(new VBox(vBox));
 
         root.getStyleClass().add("main-pane");
-        FlowPane pane = new FlowPane(50, 50);
         pane.setAlignment(Pos.TOP_LEFT);
         pane.getStyleClass().add("main-pane-content");
         pane.setPadding(new Insets(10, 10, 50, 10));
         System.out.println("Create flow pane");
-
-        recountChildren(pane);
+        recountChildren();
         System.out.println("Recounted");
 
-        field.textProperty().addListener((e1,e2,e3) -> {
+
+        // Favorites groups::[start]
+        allToggle.setSelected(true);
+        allToggle.getStyleClass().add("favorite-user-toggle");
+        allToggle.setToggleGroup(userGroups);
+        groupsBox.getChildren().add(allToggle);
+        allToggle.selectedProperty().addListener((p1, p2, p3) -> {
+            if (p3) {
+                CURRENT_TOGGLE = allToggle.getText();
+                currentList.setAll(allFavorites);
+                Platform.runLater(() -> pane.getChildren().setAll(currentList));
+            }
+        });
+        for (String group : FavoriteGroupProvider.getAllGroups()) {
+            addFavoriteGroup(group, groupsBox);
+        }
+        // Favorites groups::[end]
+
+        field.textProperty().addListener((e1, e2, e3) -> {
             clear.setVisible(!e3.isEmpty());
 
-            List<Pane> panes = new ArrayList<>(originNots);
+            List<Pane> panes = new ArrayList<>(currentList);
             panes = panes.stream().filter(e -> {
-                if (e instanceof VideoCard card) {
+                if (e instanceof FavoriteVideo card) {
                     return card.getTitle().toLowerCase().contains(e3.trim().toLowerCase());
                 }
                 return true;
@@ -98,36 +185,172 @@ public class FavoritePane extends AnchorPane {
         System.out.println("Created components");
 
         FavoriteListener.addListener((videoCard) -> {
+            log.info("Favorite event: {}", videoCard);
+            FavoriteVideo favoriteVideo = copyCard(videoCard);
+
             if (!videoCard.isFavorite()) {
-                // Удаляем из избранного: ищем карточку не по объекту, а по ID
-                pane.getChildren().removeIf(node -> node instanceof VideoCard card && card.getCardId() == videoCard.getCardId());
+                pane.getChildren().remove(favoriteVideo);
+                allFavorites.remove(favoriteVideo);
+                groups.computeIfAbsent(favoriteVideo.getGroup(), s -> new CopyOnWriteArrayList<>()).remove(favoriteVideo);
                 EventListener.notifyListeners("favorieStateChanged");
             } else {
-                pane.getChildren().addFirst(copyCard(videoCard).display());
+                favoriteVideo.render();
+                allFavorites.addFirst(favoriteVideo);
+                if (CURRENT_TOGGLE.equals(allToggle.getText())) {
+                    pane.getChildren().addFirst(favoriteVideo);
+                }
             }
         });
         System.out.println("Finish init");
     }
 
-    private VideoCard copyCard(VideoCard videoCard) {
-        VideoCard cardCopy = new VideoCard();
-        cardCopy.setCardId(videoCard.getCardId());
-        cardCopy.setTitle(videoCard.getTitle());
-        cardCopy.setUrl(videoCard.getUrl());
-        cardCopy.setPic(videoCard.getPic());
-        cardCopy.setDuration(videoCard.getDuration());
-        cardCopy.setViews(videoCard.getViews());
-        cardCopy.setRating(videoCard.getRating());
-        cardCopy.setInfo(videoCard.getInfo());
-        cardCopy.setFavorite(true);
-        return cardCopy;
+    private FavoriteVideo copyCard(FavoriteVideo videoCard) {
+        return new FavoriteVideo(videoCard.getCardId(), videoCard.getTitle(), videoCard.getUrl(), videoCard.getPic(), videoCard.getDuration(), videoCard.getViews(), videoCard.getRating(), videoCard.getInfo(), videoCard.isFavorite(), videoCard.getGroup());
     }
 
-    private void recountChildren(FlowPane pane) {
-        FavoriteVideos.getAll().forEach(e -> {
-            Pane p = e.display();
-            originNots.add(p);
-            Platform.runLater(() -> pane.getChildren().addFirst(p));
+    private void addFavoriteGroup(String name, HBox groupsBox) {
+        ToggleButton button = new ToggleButton(name);
+        button.getStyleClass().add("favorite-user-toggle");
+        button.setToggleGroup(userGroups);
+
+        groupsBox.getChildren().add(button);
+        button.selectedProperty().addListener((p1, p2, p3) -> {
+            if (p3) {
+                CURRENT_TOGGLE = button.getText();
+                List<FavoriteVideo> currentGroup = groups.computeIfAbsent(name, k -> new CopyOnWriteArrayList<>());
+                currentList.setAll(currentGroup);
+                log.info("Current list size: {}", currentList.size());
+                Platform.runLater(() -> pane.getChildren().setAll(currentList));
+            }
         });
+        MenuItem delete = getMenuItem(name, groupsBox, button);
+        button.setContextMenu(new ContextMenu(delete));
+
+        setupDnDToButton(button, name);
+    }
+
+    private MenuItem getMenuItem(String name, HBox groupsBox, ToggleButton button) {
+        MenuItem delete = new MenuItem("Удалить");
+        delete.setOnAction(e -> {
+            FavoriteGroupProvider.removeGroup(name);
+            List<FavoriteVideo> toRemove = new CopyOnWriteArrayList<>(groups.get(name));
+            groups.remove(name);
+            Platform.runLater(() -> groupsBox.getChildren().remove(button));
+            toRemove.forEach(video -> FavoriteVideos.update("mark", null, video.getCardId()));
+            if (button.getText().equals(CURRENT_TOGGLE)) {
+                allToggle.setSelected(true);
+            }
+        });
+        return delete;
+    }
+
+    private void setupDnDToButton(ToggleButton button, String group) {
+        button.setOnDragOver(event -> {
+            if (event.getDragboard().hasString()) {
+                event.acceptTransferModes(TransferMode.MOVE);
+                button.getStyleClass().add("drag-drop");
+            }
+            event.consume();
+        });
+        button.setOnDragExited(event -> {
+            button.getStyleClass().setAll("favorite-user-toggle");
+            event.consume();
+        });
+        button.setOnDragDropped(event -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasString()) {
+                FavoriteVideo video = FavoriteVideo.ofInfo(JSONSerializer.deserialize(db.getString(), FavoriteVideoInfo.class));
+
+                int videoId = video.getCardId();
+                String videoGroup = video.getGroup();
+                button.getStyleClass().setAll("favorite-user-toggle");
+
+                if (videoGroup != null) {
+                    if (videoGroup.equals(group)) {
+                        log.info("Одинаковые группы!");
+                        return;
+                    }
+                    if (containsId(videoId, groups.computeIfAbsent(group, s -> new CopyOnWriteArrayList<>()))) {
+                        log.info("Target group already has this video!");
+                        return;
+                    }
+                    pane.getChildren().remove(video);
+                }
+                groups.computeIfAbsent(videoGroup, s -> new CopyOnWriteArrayList<>()).remove(video);
+
+                log.info("Dropped a new video: {}", videoId);
+                FavoriteVideos.update("mark", group, videoId);
+                groups.computeIfAbsent(group, s -> new CopyOnWriteArrayList<>()).addFirst(video);
+                video.render();
+                success = true;
+            }
+
+            event.setDropCompleted(success);
+            event.consume();
+        });
+    }
+
+    private boolean containsId(int cardId, List<FavoriteVideo> videos) {
+        for (FavoriteVideo video : videos) {
+            if (video.getCardId() == cardId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void recountGroups() {
+        for (FavoriteVideo card : allFavorites) {
+            String group = card.getGroup();
+            if (group != null) {
+                List<FavoriteVideo> groupList = groups.computeIfAbsent(group, (s) -> new CopyOnWriteArrayList<>());
+                groupList.add(card);
+            }
+        }
+    }
+
+    private void recountChildren() {
+        Thread.startVirtualThread(() -> {
+            FavoriteVideos.getAll().forEach(e -> {
+                e.render();
+                allFavorites.add(e);
+                log.info("Video: {}  --  {}", e.getTitle(), e.getGroup());
+                Platform.runLater(() -> pane.getChildren().add(e));
+            });
+            recountGroups();
+        });
+    }
+
+    private void showContextMenu(Node node, double x, double y) {
+        ContextMenu menu = new ContextMenu();
+        for (String str : List.of("1080p", "SD", "LQ", "HQ", "HD")) {
+            menu.getItems().add(getLoader(str));
+        }
+        menu.show(node, x, y);
+    }
+
+    protected MenuItem getLoader(String qual) {
+        MenuItem item = new MenuItem(qual);
+        PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
+        PornParser parser = adapter.getParser();
+        List<FavoriteVideo> toLoad = new ArrayList<>(currentList);
+
+        item.setOnAction(e -> {
+            for (FavoriteVideo video : toLoad) {
+                executor.execute(() -> {
+                    try {
+                        VideoInfo info = video.getInfo();
+                        if (info == null) {
+                            info = parser.parseVideo(video.getUrl());
+                        }
+                        handler.downloadPorn(info.getUrls().get(qual), video.getTitle());
+                    } catch (Exception ex) {
+                        log.error("Porn loading error: ", ex);
+                    }
+                });
+            }
+        });
+        return item;
     }
 }

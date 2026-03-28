@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer;
 
+import com.plovdev.pornviewer.databases.FavoriteVideos;
 import com.plovdev.pornviewer.utility.files.EnvReader;
-import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
@@ -14,10 +14,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 
 public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
@@ -25,25 +21,7 @@ public class Test {
     private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public static void main(String[] args) throws Exception {
-        log.info("Start encrypting...");
-        try (ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
-             Stream<Path> pathStream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile)
-                .filter(path -> {
-                    String name = path.toString();
-                    return name.endsWith(".mp4");
-                })) {
-            List<Path> loaded = pathStream.toList();
-            for (Path path : loaded) {
-                service.execute(() -> {
-                    String filename = path.toFile().getName();
-                    String encryptedFileName = filename + FileUtils.PORN_VIEWER_SIGN;
-                    String fileOut = FileUtils.getPvDownloadsPath() + "/" + encryptedFileName;
-                    rename(path, Path.of(fileOut));
-                });
-            }
-        } catch (Exception e) {
-            log.error("Error occurent while enctypting files: ", e);
-        }
+        FavoriteVideos.updateUrls("http://5porno365.info");
     }
 
     private static void encrypt(Path path) {

@@ -1,5 +1,6 @@
 package com.plovdev.pornviewer.server;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.slf4j.Logger;
@@ -7,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.plovdev.pornviewer.server.ContentUtils.checkFile;
@@ -32,11 +34,18 @@ public class SafeHttpHandler implements HttpHandler {
             executeHead(exchange, params);
         } else if (method.equals(GET)) {
             try {
-                String range = exchange.getRequestHeaders().get("Range").getFirst();
-                if (range == null) {
-                    throw new NullPointerException("Range is null");
+                Headers headers = exchange.getRequestHeaders();
+                if (headers != null) {
+                    List<String> ranges = headers.get("Range");
+                    if (ranges != null && !ranges.isEmpty()) {
+                        String range = ranges.getFirst();
+                        executeGet(exchange, parseChunk(range), params);
+                    } else {
+                        executeGet(exchange, parseChunk(String.valueOf(checkFile(exchange, params).length())), params);
+                    }
+                } else {
+                    executeGet(exchange, parseChunk(String.valueOf(checkFile(exchange, params).length())), params);
                 }
-                executeGet(exchange, parseChunk(range), params);
             } catch (Exception e) {
                 log.error("Error to process get request: ", e);
             }

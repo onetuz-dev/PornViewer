@@ -8,6 +8,16 @@ public abstract class PornCard extends Pane {
     protected String url;
     protected String pic;
 
+    public PornCard(int id, String title, String url, String pic) {
+        this.id = id;
+        this.title = title;
+        this.url = url;
+        this.pic = pic;
+    }
+    public PornCard() {
+
+    }
+
     public String getTitle() {
         return title;
     }
@@ -40,7 +50,7 @@ public abstract class PornCard extends Pane {
         this.id = id;
     }
 
-    public abstract Pane display();
+    public abstract void render();
 
     @Override
     public String toString() {

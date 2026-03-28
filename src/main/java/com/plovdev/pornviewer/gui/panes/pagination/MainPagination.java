@@ -3,7 +3,7 @@ package com.plovdev.pornviewer.gui.panes.pagination;
 import com.plovdev.pornviewer.gui.filters.TrinaglePaginationBlock;
 import com.plovdev.pornviewer.httpquering.PornHandler;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
-import com.plovdev.pornviewer.models.PornCard;
+import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
 import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
@@ -12,7 +12,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 
-import java.awt.*;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,11 +86,11 @@ public class MainPagination {
                 block.getNext().setDisable(nextUrl == null);
                 DefPornParser pornParser = new DefPornParser();//new String(Files.readAllBytes(Path.of("src/html.html"))));
                 System.out.println("handled");
-                List<PornCard> cards = pornParser.getAll(htmlPage);
+                List<VideoCard> cards = pornParser.getAllVideos(htmlPage);
                 System.out.println("parsed");
                 cards.forEach(e -> {
-                    Pane card = e.display();
-                    Platform.runLater(() -> pane.getChildren().add(card));
+                    e.render();
+                    Platform.runLater(() -> pane.getChildren().add(e));
                 });
             } catch (Exception e) {
                 System.out.println(e.getMessage());

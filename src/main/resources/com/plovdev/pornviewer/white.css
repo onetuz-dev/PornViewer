@@ -187,6 +187,7 @@
 
 .porn-scroll {
     -fx-border-color: white;
+    -fx-background-color: white;
 }
 
 .porn-search {
@@ -391,4 +392,56 @@
 }
 .pagination-button:hover {
     -fx-background-color: rgb(250,250,250);
+}
+
+
+
+.add-favorite-group {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: rgb(285,180,40);
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-font-size: 1.6em;
+}
+
+.favorite-user-toggle, .load-all {
+    -fx-background-radius: 10px;
+    -fx-border-radius: 10px;
+    -fx-background-color: lightgray;
+    -fx-text-fill: black;
+    -fx-font-family: "Arial";
+    -fx-padding: 5px 10px 5px 10px;
+    -fx-font-size: 1.2em;
+    -fx-transition: all 0.2s all;
+}
+.favorite-user-toggle.drag-drop {
+    -fx-background-color: #ff9800;
+    -fx-text-fill: white;
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);
+}
+
+.favorite-user-toggle:selected, .load-all:pressed {
+    -fx-background-color: rgb(250,160,0);
+    -fx-text-fill: white;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.scroll-pane:focused {
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+.groups-box {
+    -fx-background-color: white;
 }

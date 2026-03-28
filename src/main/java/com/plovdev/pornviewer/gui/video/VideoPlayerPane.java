@@ -8,11 +8,15 @@ import com.plovdev.pornviewer.models.VideoInfo;
 import javafx.scene.Scene;
 import javafx.scene.media.Media;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Objects;
 
 public class VideoPlayerPane extends Stage {
+    private static final Logger log = LoggerFactory.getLogger(VideoPlayerPane.class);
+
     public VideoPlayerPane(VideoCard card) {
         super();
         PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
@@ -24,6 +28,7 @@ public class VideoPlayerPane extends Stage {
             card.setInfo(info);
         }
         Map<String, String> urls = info.getUrls();
+        log.info("Avail URLs: {}", urls);
         Media media = new Media(urls.containsKey("1080p")? urls.get("1080p") : urls.get("HQ"));
 
         VideoPlyer plyer = new VideoPlyer(media, card.getUrl(), card.getTitle(), this);

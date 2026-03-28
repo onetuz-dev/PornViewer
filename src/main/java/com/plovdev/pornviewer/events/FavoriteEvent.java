@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.events;
 
-import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.models.FavoriteVideo;
 
 public interface FavoriteEvent {
-    void favorite(VideoCard card);
+    void favorite(FavoriteVideo card);
 }

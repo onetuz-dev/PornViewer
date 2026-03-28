@@ -1,0 +1,18 @@
+{
+  "resources": {
+    "includes": [
+      {"pattern": ".*\\.properties$"},
+      {"pattern": ".*\\.fxml$"},
+      {"pattern": ".*\\.css$"},
+      {"pattern": ".*\\.png$"},
+      {"pattern": ".*\\.jpg$"},
+      {"pattern": ".*\\.gif$"},
+      {"pattern": ".*\\.mp4$"},
+      {"pattern": ".*\\.mp3$"},
+      {"pattern": ".*\\.ttf$"},
+      {"pattern": ".*sqlite.*"},
+      {"pattern": ".*/native/.*/libsqlite.*"},
+      {"pattern": "META-INF/versions/9/.*SqliteJdbcFeature.*"}
+    ]
+  }
+}
