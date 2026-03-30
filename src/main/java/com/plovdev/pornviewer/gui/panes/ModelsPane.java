@@ -1,11 +1,13 @@
 package com.plovdev.pornviewer.gui.panes;
 
 import com.plovdev.pornviewer.databases.UserPreferences;
+import com.plovdev.pornviewer.events.listeners.ClickListener;
 import com.plovdev.pornviewer.httpquering.*;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.ModelCard;
 import com.plovdev.pornviewer.models.ModelInfo;
 import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.utility.LauncherHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,13 +15,17 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ModelsPane extends AnchorPane {
+    private static final Logger log = LoggerFactory.getLogger(ModelsPane.class);
     private final ObservableList<ModelCard> originNots = FXCollections.observableArrayList();
     private final ObservableList<ModelCard> loadedModels = FXCollections.observableArrayList();
     private final Button back = new Button("<--");
@@ -88,11 +94,16 @@ public class ModelsPane extends AnchorPane {
             if (!checker.canSearch()) return;
 
             String txt = field.getText();
+            if (txt.startsWith("pv://") || txt.startsWith("pornviewer://")) {
+                field.setText("");
+                LauncherHelper.getInstance().notifyDeepLink(URI.create(txt));
+                return;
+            }
             txt = txt.replace("/","");
             if (!txt.isEmpty()) {
                 pane.getChildren().clear();
                 originNots.clear();
-                runPornParsing(pane, resourcer.baseUrl() + resourcer.modelsUrl() + URLEncoder.encode(field.getText(), Charset.defaultCharset()));
+                runPornParsing(pane, resourcer.baseUrl() + resourcer.modelsSearchUrl() + URLEncoder.encode(field.getText(), Charset.defaultCharset()));
             }
         });
         field.textProperty().addListener((e1,e2,e3) -> {
@@ -125,6 +136,12 @@ public class ModelsPane extends AnchorPane {
         AnchorPane.setRightAnchor(root, 0.0);
         AnchorPane.setTopAnchor(root, 0.0);
         AnchorPane.setBottomAnchor(root, 0.0);
+
+        ClickListener.addListener(info -> {
+            log.info("Updating model: {}", info.getUrl());
+            back.setVisible(true);
+            runModelVideosParsing(pane, info.getUrl());
+        });
     }
 
     private void runPornParsing(FlowPane pane, String url) {
@@ -141,10 +158,6 @@ public class ModelsPane extends AnchorPane {
                 List<ModelInfo> cards = parser.getModels(handler.requestPorn(url));
                 cards.forEach(e -> {
                     ModelCard card = new ModelCard(e, pane);
-                    card.addListener(info -> {
-                        back.setVisible(true);
-                        runModelVideosParsing(pane, info.getUrl());
-                    });
                     card.render();
                     originNots.add(card);
                     loadedModels.add(card);
@@ -157,13 +170,16 @@ public class ModelsPane extends AnchorPane {
     }
 
     private void runModelVideosParsing(FlowPane pane, String url) {
-        pane.getChildren().clear();
+        Platform.runLater(() -> pane.getChildren().clear());
         Thread.startVirtualThread(getParseModelVideosTask(pane, url));
     }
     private Runnable getParseModelVideosTask(FlowPane pane, String url) {
         return () -> {
             try {
-                if (!checker.hasModels()) return;
+                if (!checker.hasModels()) {
+                    log.info("Has not models...");
+                    return;
+                }
 
                 System.out.println("start");
                 PornParser pornParser = adapter.getParser();

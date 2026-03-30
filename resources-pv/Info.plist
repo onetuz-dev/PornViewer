@@ -10,9 +10,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.plovdev.pornviewer</string>
     <key>CFBundleVersion</key>
-    <string>1.6.8</string>
+    <string>1.7.0</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.6.8</string>
+    <string>1.7.0</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
@@ -54,7 +54,7 @@
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
             <key>CFBundleTypeIconFile</key>
-            <string>pvva.icns</string>
+            <string>PornViewer.icns</string>
             <key>LSItemContentTypes</key>
             <array>
                 <string>com.plovdev.pv.plugin</string>
@@ -82,7 +82,7 @@
             <key>UTTypeDescription</key>
             <string>PornViewer Plugin</string>
             <key>UTTypeIconFile</key>
-            <string>pvva.icns</string>
+            <string>PornViewer.icns</string>
         </dict>
     </array>
 
@@ -91,7 +91,7 @@
         <array>
             <dict>
                 <key>CFBundleURLName</key>
-                <string>com.plovdev.pornviewer.url</string>
+                <string>b29a674cce9b3fff1010a658070c8933</string>
                 <key>CFBundleURLSchemes</key>
                 <array>
                     <string>pv</string>

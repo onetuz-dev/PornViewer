@@ -4,6 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 public class VideoInfo {
+    private String rating;
+    private int views;
+    private String duration;
+    private String pic;
+    private int id;
     private Map<String, String> urls;
     private Map<String, String> categories;
     private Map<String, String> models;
@@ -12,7 +17,6 @@ public class VideoInfo {
     private Map<String, String> timeCodes;
     private List<Comment> comments;
     private String title;
-    private int id;
     private String url;
 
     public VideoInfo() {
@@ -32,6 +36,37 @@ public class VideoInfo {
                 '}';
     }
 
+    public String getPic() {
+        return pic;
+    }
+
+    public void setPic(String pic) {
+        this.pic = pic;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
+    public void setDuration(String duration) {
+        this.duration = duration;
+    }
+
+    public int getViews() {
+        return views;
+    }
+
+    public void setViews(int views) {
+        this.views = views;
+    }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public void setRating(String rating) {
+        this.rating = rating;
+    }
 
     public Map<String, String> getCategories() {
         return categories;

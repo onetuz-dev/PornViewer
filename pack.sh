@@ -4,16 +4,19 @@ jpackage --type pkg \
   --main-jar PornViewer.jar \
   --main-class com.plovdev.pornviewer.Launcher \
   --name "PornViewer" \
-  --app-version "1.6.8" \
+  --app-version "1.7.0" \
   --vendor "PlovDev" \
   --copyright "© 2026 PlovDev. Все права защищены." \
   --description "Безопасный и анонимный просмотр видео 18+ с шифрованием и поддержкой плагинов" \
   --dest dist \
-  --icon ./files/icon.icns \
+  --icon ./files/PornViewer.icns \
   --java-options "-Xmx2G" \
   --java-options "-Dfile.encoding=UTF-8" \
+  --java-options "-Dapple.laf.useScreenMenuBar=true" \
+  --java-options "-Dcom.apple.mrj.application.apple.menu.about.name=PornViewer" \
   --mac-package-identifier "com.plovdev.pornviewer" \
   --mac-package-name "PornViewer" \
+  --runtime-image ./files/pv-jre \
   --mac-app-category "public.app-category.entertainment" \
   --license-file ./files/LICENSE.txt \
   --about-url "https://github.com/anton-1488/PornViewer" \

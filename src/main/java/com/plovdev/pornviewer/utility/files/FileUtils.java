@@ -3,8 +3,6 @@ package com.plovdev.pornviewer.utility.files;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 
 public class FileUtils {
@@ -28,12 +26,6 @@ public class FileUtils {
     @NotNull
     public static String getPvDbPath() {
         return getPvSystemPath() + PV_DB_PATH;
-    }
-    @NotNull
-    public static String replaceFileToHttpPath(String file) {
-        file = file.substring(file.lastIndexOf("/"));
-        boolean needDecrypt = file.endsWith("b29a674cce9b3fff1010a658070c8933");
-        return String.format("http://127.0.0.1:3535/video?file=%s&needDecrypt=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), needDecrypt);
     }
     @NotNull
     public static String getPVJDBCPathProtocol() {

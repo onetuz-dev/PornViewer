@@ -1,6 +1,5 @@
 package com.plovdev.pornviewer.models;
 
-import com.plovdev.pornviewer.events.ClickEvent;
 import com.plovdev.pornviewer.events.listeners.ClickListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,7 +15,6 @@ public class ModelCard extends PornCard {
     private static final Logger log = LoggerFactory.getLogger(ModelCard.class);
     private ModelInfo modelInfo;
     private final Pane pane;
-    private final ClickListener listener = new ClickListener();
 
     public void setModelInfo(ModelInfo modelInfo) {
         this.modelInfo = modelInfo;
@@ -49,7 +47,7 @@ public class ModelCard extends PornCard {
 
         Hyperlink titleLabel = new Hyperlink(modelInfo.getRusName());
         setTitle(modelInfo.getRusName());
-        titleLabel.setOnAction(e -> listener.notifyListeners(modelInfo));
+        titleLabel.setOnAction(e -> ClickListener.notifyListeners(modelInfo));
         titleLabel.getStyleClass().add("video-title");
 
         HBox hBox = new HBox(titleLabel);
@@ -89,9 +87,5 @@ public class ModelCard extends PornCard {
 
         mainContainer.getChildren().addAll(box, infoOverlay);
         getChildren().add(mainContainer);
-    }
-
-    public void addListener(ClickEvent event) {
-        listener.addListener(event);
     }
 }

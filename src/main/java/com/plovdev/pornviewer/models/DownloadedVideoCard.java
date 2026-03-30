@@ -2,7 +2,7 @@ package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.gui.video.DownloadedVideoPlayerPane;
 import com.plovdev.pornviewer.utility.DialogShower;
-import com.plovdev.pornviewer.utility.files.FileUtils;
+import com.plovdev.pornviewer.utility.files.ServerPaths;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -68,7 +68,7 @@ public class DownloadedVideoCard extends VideoCard {
     }
 
     public String getPath() {
-        return FileUtils.replaceFileToHttpPath(path);
+        return ServerPaths.getInstance().replaceFileToHttpPath(path);
     }
     public String getOriginalPath() {
         return path;

@@ -12,6 +12,7 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -179,9 +180,38 @@ public class DefPornParser implements PornParser {
             String pageUrl = doc.select("link[rel=canonical]").attr("href");
             info.setUrl(pageUrl);
 
-            int id = Integer.parseInt(pageUrl.substring(pageUrl.lastIndexOf('/')+1));
+            int id = Integer.parseInt(pageUrl.substring(pageUrl.lastIndexOf('/') + 1));
             info.setId(id);
 
+            Element picture = doc.selectFirst("link[itemprop=thumbnailUrl]");
+            if (picture != null) {
+                info.setPic(picture.attr("href"));
+            }
+
+            Element durationMeta = doc.selectFirst("meta[itemprop=duration]");
+            if (durationMeta != null) {
+                String rawDuration = durationMeta.attr("content");
+                Duration d = Duration.parse(rawDuration);
+                long h = d.toHours();
+                long m = d.toMinutesPart();
+                long s = d.toSecondsPart();
+
+                String timeFormatted = (h > 0) ? String.format("%02d:%02d:%02d", h, m, s) : String.format("%02d:%02d", m, s);
+                info.setDuration(timeFormatted);
+            }
+
+            Element viewsElement = doc.selectFirst("span[itemprop=interactionCount]");
+            if (viewsElement != null) {
+                String viewsString = viewsElement.text();
+                int viewsCount = Integer.parseInt(viewsString);
+                info.setViews(viewsCount);
+            }
+
+            Element ratingElement = doc.selectFirst(".rating_score");
+            if (ratingElement != null) {
+                String rating = ratingElement.ownText().trim();
+                info.setRating(rating);
+            }
 
             Elements descr = doc.select("div.story_desription");
             descr.forEach(e -> info.setDescription(e.text().trim()));
@@ -257,7 +287,7 @@ public class DefPornParser implements PornParser {
         String flag = country.attr("class");
         info.setCountry(null);
         if (flag.contains("-")) {
-            flag = flag.substring(flag.lastIndexOf('-')+1);
+            flag = flag.substring(flag.lastIndexOf('-') + 1);
             info.setCountry(flag.toUpperCase());
         }
 

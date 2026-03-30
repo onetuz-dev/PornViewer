@@ -15,8 +15,8 @@ public class UserPreferences {
 
     static {
         try {
-            con = DriverManager.getConnection(PREFERENCES);
-        } catch (SQLException e) {
+            con = SecureDB.initCipherer();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         createTable();

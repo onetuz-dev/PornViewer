@@ -1,10 +1,12 @@
 package com.plovdev.pornviewer.databases;
 
-import com.plovdev.pornviewer.utility.files.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -14,8 +16,8 @@ public class FavoriteGroupProvider {
 
     static {
         try {
-            con = DriverManager.getConnection(FileUtils.getPVJDBCPathProtocol());
-        } catch (SQLException e) {
+            con = SecureDB.initCipherer();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         createTable();

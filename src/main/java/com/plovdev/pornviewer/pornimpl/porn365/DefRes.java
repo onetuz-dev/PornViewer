@@ -28,6 +28,16 @@ public class DefRes implements Resourcer {
     }
 
     @Override
+    public String modelsSearchUrl() {
+        return "/?do=ajax&action=searchModel&model=";
+    }
+
+    @Override
+    public String modelUrl(String model) {
+        return modelsUrl() + model;
+    }
+
+    @Override
     public List<String> getUrls() {
         return List.of(BASE1, BASE2, BASE3, BASE4, BASE5, BASE6);
     }
@@ -35,5 +45,15 @@ public class DefRes implements Resourcer {
     @Override
     public String categories() {
         return "/categories/";
+    }
+
+    @Override
+    public String videoUrl() {
+        return "/movie/";
+    }
+
+    @Override
+    public String buildVideoUrlFromId(int id) {
+        return baseUrl() + videoUrl() + id;
     }
 }

@@ -1,23 +1,24 @@
 package com.plovdev.pornviewer.databases;
 
 import com.plovdev.pornviewer.models.FavoriteVideo;
-import com.plovdev.pornviewer.utility.files.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FavoriteVideos {
-    private static final String FAVORITES = FileUtils.getPVJDBCPathProtocol();
     private static final Logger log = LoggerFactory.getLogger(FavoriteVideos.class);
     private static final Connection con;
     static {
         try {
-            con = DriverManager.getConnection(FAVORITES);
-        } catch (SQLException e) {
+            con = SecureDB.initCipherer();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         createTable();
@@ -177,7 +178,7 @@ public class FavoriteVideos {
     public static void updateUrls(String url2) {
         for (FavoriteVideo card : FavoriteVideos.getAll()) {
             log.info("Updating card: {}", card);
-            FavoriteVideos.update("url", url2, card.getCardId());
+            FavoriteVideos.update("url", url2 + "/movie/" + card.getCardId(), card.getCardId());
         }
     }
 }

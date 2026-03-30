@@ -1,12 +1,16 @@
 package com.plovdev.pornviewer.server;
 
-import com.sun.net.httpserver.HttpExchange;
+import com.plovdev.pornviewer.events.listeners.ServerEventListener;
+import com.plovdev.pornviewer.events.listeners.ServerEventListenerAdapter;
+import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.net.BindException;
 import java.net.InetSocketAddress;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 
 public class SafeHttpServer {
@@ -16,6 +20,7 @@ public class SafeHttpServer {
     private boolean isRunning;
     private HttpServer server;
     private volatile static SafeHttpServer INSTANSE = null;
+    private ServerEventListener listener = new ServerEventListenerAdapter() {};
 
     public static SafeHttpServer getInstance() {
         if (INSTANSE == null) {
@@ -40,15 +45,24 @@ public class SafeHttpServer {
             logger.info("Server already running");
             return;
         }
+        ServerPaths.updateToken(UUID.randomUUID().toString());
 
         try {
             server = HttpServer.create(new InetSocketAddress(PORT), 0);
             server.createContext("/video", new SafeHttpHandler());
+            server.createContext("/info", new UtilsHandler());
+            server.createContext("/deeplink", new DeepLinkHandler());
             server.setExecutor(Executors.newCachedThreadPool());
             server.start();
+            Thread.sleep(250);
             isRunning = true;
             logger.info("Server started on port {}", PORT);
-        } catch (IOException e) {
+            listener.onServerStarted();
+        } catch (BindException e) {
+            listener.onAdressAlreadyInUse(new InetSocketAddress(PORT));
+            logger.error("Adress creating error: ", e);
+        } catch (Exception e) {
+            listener.onError(e);
             logger.error("Server start error: ", e);
         }
     }
@@ -58,12 +72,17 @@ public class SafeHttpServer {
             server.stop(0);
             isRunning = false;
             logger.info("Server stopped");
+            listener.onServerStopped();
         }
     }
 
-    private void onMessage(HttpExchange exchange) throws IOException {
-        String body = new String(exchange.getRequestBody().readAllBytes());
-        logger.info("Getted body: {}", body);
+    public ServerEventListener getListener() {
+        return listener;
+    }
+
+    public void setListener(ServerEventListener listener) {
+        Objects.requireNonNull(listener);
+        this.listener = listener;
     }
 
     public boolean isRunning() {

@@ -12,6 +12,7 @@ import com.plovdev.pornviewer.models.FavoriteVideo;
 import com.plovdev.pornviewer.models.FavoriteVideoInfo;
 import com.plovdev.pornviewer.models.VideoInfo;
 import com.plovdev.pornviewer.utility.JSONSerializer;
+import com.plovdev.pornviewer.utility.LauncherHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,6 +26,7 @@ import javafx.scene.layout.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -167,7 +169,15 @@ public class FavoritePane extends AnchorPane {
                 return true;
             }).toList();
 
-            pane.getChildren().setAll(panes.reversed());
+            pane.getChildren().setAll(panes);
+        });
+
+        field.setOnAction(a -> {
+            String txt = field.getText();
+            if (txt.startsWith("pv://") || txt.startsWith("pornviewer://")) {
+                field.setText("");
+                LauncherHelper.getInstance().notifyDeepLink(URI.create(txt));
+            }
         });
 
         System.out.println("Create scroll");
@@ -184,10 +194,9 @@ public class FavoritePane extends AnchorPane {
         AnchorPane.setBottomAnchor(root, 0.0);
         System.out.println("Created components");
 
-        FavoriteListener.addListener((videoCard) -> {
+        FavoriteListener.addListener((videoCard) -> Platform.runLater(() -> {
             log.info("Favorite event: {}", videoCard);
             FavoriteVideo favoriteVideo = copyCard(videoCard);
-
             if (!videoCard.isFavorite()) {
                 pane.getChildren().remove(favoriteVideo);
                 allFavorites.remove(favoriteVideo);
@@ -200,7 +209,7 @@ public class FavoritePane extends AnchorPane {
                     pane.getChildren().addFirst(favoriteVideo);
                 }
             }
-        });
+        }));
         System.out.println("Finish init");
     }
 

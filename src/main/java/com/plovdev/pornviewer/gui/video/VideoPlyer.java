@@ -1,6 +1,9 @@
 package com.plovdev.pornviewer.gui.video;
 
-import com.plovdev.pornviewer.utility.Sharer;
+import com.plovdev.pornviewer.models.DownloadedVideoCard;
+import com.plovdev.pornviewer.models.PornCard;
+import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.utility.sharing.Sharer;
 import com.plovdev.pornviewer.utility.video.magnifier.Magnifier;
 import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
@@ -29,10 +32,8 @@ public class VideoPlyer extends StackPane {
     private final BorderPane content;
     private final PauseTransition hideTimer;
     private boolean isPlay = false;
-    private final Stage owner;
 
-    public VideoPlyer(Media media, String source, String title, Stage stg) {
-        owner = stg;
+    public VideoPlyer(Media media, VideoCard card, Stage stage) {
         System.out.println(media.getMetadata());
         mediaPlayer = new MediaPlayer(media);
         mediaView = new MediaView(mediaPlayer);
@@ -76,7 +77,10 @@ public class VideoPlyer extends StackPane {
         rates.valueProperty().addListener((p1, p2, p3) -> mediaPlayer.setRate(p3));
         rates.focusedProperty().addListener(e -> rates.requestFocus());
 
-        HBox top = new HBox(volume, magn, hReg(), rates, getShareButton(source, title));
+        HBox top = new HBox(volume, magn, hReg(), rates);
+        if (!(card instanceof DownloadedVideoCard)) {
+            top.getChildren().add(getShareButton(stage, card));
+        }
         HBox center = new HBox(slider);
         HBox bottom = new HBox(timeLabel, hReg(), totalLabel);
 
@@ -233,8 +237,11 @@ public class VideoPlyer extends StackPane {
     }
 
     public void stop() {
-        mediaPlayer.stop();
-        mediaPlayer.dispose();
+        Thread.startVirtualThread(() -> {
+            mediaPlayer.pause();
+            mediaPlayer.stop();
+            mediaPlayer.setOnStopped(() -> mediaPlayer.dispose());
+        });
     }
 
     public void pause() {
@@ -268,7 +275,7 @@ public class VideoPlyer extends StackPane {
         return region;
     }
 
-    private Button getShareButton(String s, String t) {
+    private Button getShareButton(Stage stage, PornCard card) {
         Button shareButton = new Button();
         shareButton.getStyleClass().add("share-button");
         SVGPath shareIcon = new SVGPath();
@@ -280,7 +287,7 @@ public class VideoPlyer extends StackPane {
         shareIcon.setFill(Color.TRANSPARENT);
 
         shareButton.setGraphic(shareIcon);
-        shareButton.setOnAction(e -> Sharer.share(owner, s, t));
+        shareButton.setOnAction(e -> Sharer.share(stage, card));
 
         return shareButton;
     }

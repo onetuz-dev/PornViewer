@@ -1,9 +1,20 @@
 package com.plovdev.pornviewer.gui.tabs;
 
+import com.plovdev.pornviewer.databases.UserPreferences;
+import com.plovdev.pornviewer.events.listeners.ClickListener;
+import com.plovdev.pornviewer.events.listeners.DeepLinkListener;
+import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.panes.DownloadsPane;
 import com.plovdev.pornviewer.gui.panes.FavoritePane;
 import com.plovdev.pornviewer.gui.panes.MainMenuPane;
 import com.plovdev.pornviewer.gui.panes.ModelsPane;
+import com.plovdev.pornviewer.httpquering.PornParser;
+import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
+import com.plovdev.pornviewer.httpquering.Resourcer;
+import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
+import com.plovdev.pornviewer.models.FavoriteVideo;
+import com.plovdev.pornviewer.models.ModelInfo;
+import com.plovdev.pornviewer.models.VideoInfo;
 import javafx.application.Platform;
 import javafx.geometry.Side;
 import javafx.scene.control.TabPane;
@@ -16,8 +27,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class PornTabPane extends TabPane {
-
     private static final Logger log = LoggerFactory.getLogger(PornTabPane.class);
+    private final PBPornHandler handler = new PBPornHandler();
 
     public PornTabPane(Stage stage) {
         getStyleClass().add("porn-tab-pane");
@@ -34,27 +45,57 @@ public class PornTabPane extends TabPane {
         PornTab favorites = new PornTab(new Pane(), "Избранное");
         PornTab downloads = new PornTab(new Pane(), "Загрузки");
 
+        DeepLinkListener.addListener("open", link -> {
+            switch (link.getAction()) {
+                case "models":
+                    getSelectionModel().select(models);
+                    break;
+                case "favorites":
+                    getSelectionModel().select(favorites);
+                    break;
+                case "downloads":
+                    getSelectionModel().select(downloads);
+                    break;
+            }
+        });
+
         getTabs().addAll(main, models, favorites, downloads);
 
-        ExecutorService service = Executors.newCachedThreadPool();
-        service.execute(() -> {
-            MainMenuPane mainMenuPane = new MainMenuPane();
-            Platform.runLater(() -> main.setContent(mainMenuPane));
-        });
+        try (ExecutorService service = Executors.newCachedThreadPool()) {
+            service.execute(() -> {
+                MainMenuPane mainMenuPane = new MainMenuPane();
+                Platform.runLater(() -> main.setContent(mainMenuPane));
+            });
 
-        service.execute(() -> {
-            ModelsPane modelsPane = new ModelsPane();
-            Platform.runLater(() -> models.setContent(modelsPane));
-        });
+            service.execute(() -> {
+                ModelsPane modelsPane = new ModelsPane();
+                Platform.runLater(() -> models.setContent(modelsPane));
 
-        service.execute(() -> {
-            FavoritePane favoritePane = new FavoritePane();
-            Platform.runLater(() -> favorites.setContent(favoritePane));
-        });
+                DeepLinkListener.addListener("share", link -> {
+                    if (link.getAction().equals("model")) {
+                        Platform.runLater(() -> getSelectionModel().select(models));
+                        PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
+                        Resourcer resourcer = adapter.getResourcer();
+                        ModelInfo info = new ModelInfo();
+                        info.setUrl(resourcer.baseUrl() + resourcer.modelUrl(link.getParams().get("model")));
+                        log.info("Notify model sharing: {}", info.getUrl());
+                        ClickListener.notifyListeners(info);
+                    }
+                });
+            });
 
-        service.execute(() -> {
-            DownloadsPane downloadsPane = new DownloadsPane();
-            Platform.runLater(() -> downloads.setContent(downloadsPane));
-        });
+            service.execute(() -> {
+                FavoritePane favoritePane = new FavoritePane();
+                Platform.runLater(() -> favorites.setContent(favoritePane));
+            });
+
+            service.execute(() -> {
+                DownloadsPane downloadsPane = new DownloadsPane();
+                Platform.runLater(() -> downloads.setContent(downloadsPane));
+            });
+            service.shutdown();
+        } catch (Exception e) {
+            log.error("Initiliazing error: ", e);
+        }
     }
 }

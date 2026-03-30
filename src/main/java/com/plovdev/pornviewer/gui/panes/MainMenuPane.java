@@ -9,6 +9,7 @@ import com.plovdev.pornviewer.gui.panes.pagination.MainPagination;
 import com.plovdev.pornviewer.httpquering.*;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.utility.LauncherHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -18,6 +19,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -97,6 +99,11 @@ public class MainMenuPane extends AnchorPane {
             if (!checker.canSearch()) return;
 
             String txt = field.getText();
+            if (txt.startsWith("pv://") || txt.startsWith("pornviewer://")) {
+                field.setText("");
+                LauncherHelper.getInstance().notifyDeepLink(URI.create(txt));
+                return;
+            }
             txt = txt.replace("/", "");
             if (!txt.isEmpty()) {
                 String url = resourcer.baseUrl() + resourcer.searchUrl() + URLEncoder.encode(field.getText(), Charset.defaultCharset()) + "/popular";

@@ -1,5 +1,6 @@
 package com.plovdev.pornviewer.server;
 
+import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -7,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,17 +21,27 @@ public class SafeHttpHandler implements HttpHandler {
     private static final Logger log = LoggerFactory.getLogger(SafeHttpHandler.class);
 
     @Override
-    public void handle(HttpExchange exchange) {
+    public void handle(HttpExchange exchange) throws IOException {
+        Map<String, String> params = parseRequest(exchange.getRequestURI().getQuery());
+        String token = params.get("token");
+        if (token == null) {
+            exchange.sendResponseHeaders(403, -1);
+            return;
+        }
+        if (!token.equals(ServerPaths.getInstance().getToken())) {
+            exchange.sendResponseHeaders(403, -1);
+            return;
+        }
+
         String method = exchange.getRequestMethod();
         log.info("Handling request. Method: {}", method);
         if (!checkMethod(method)) return;
 
-        processRequest(exchange);
+        processRequest(params, exchange);
     }
 
-    private void processRequest(HttpExchange exchange) {
+    private void processRequest(Map<String, String> params, HttpExchange exchange) {
         String method = exchange.getRequestMethod();
-        Map<String, String> params = parseRequest(exchange.getRequestURI().getQuery());
         if (method.equals(HEAD)) {
             executeHead(exchange, params);
         } else if (method.equals(GET)) {
@@ -77,7 +89,7 @@ public class SafeHttpHandler implements HttpHandler {
     }
 
     private boolean checkMethod(String method) {
-        return "GET".equals(method) || "HEAD".equals(method);
+        return GET.equals(method) || HEAD.equals(method);
     }
 
     private Map<String, String> parseRequest(String request) {

@@ -6,6 +6,7 @@ import com.plovdev.pornviewer.gui.filters.FilterBox;
 import com.plovdev.pornviewer.models.DownloadedVideoCard;
 import com.plovdev.pornviewer.models.DownloadingVideoCard;
 import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.utility.LauncherHelper;
 import com.plovdev.pornviewer.utility.constants.EntryEventTypes;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
@@ -27,6 +28,7 @@ import java.awt.*;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -101,6 +103,13 @@ public class DownloadsPane extends AnchorPane {
             }).toList();
             pane.getChildren().setAll(panes);
         });
+        field.setOnAction(a -> {
+            String txt = field.getText();
+            if (txt.startsWith("pv://") || txt.startsWith("pornviewer://")) {
+                field.setText("");
+                LauncherHelper.getInstance().notifyDeepLink(URI.create(txt));
+            }
+        });
 
 
         ScrollPane pornScroll = new ScrollPane(pane);
@@ -141,7 +150,10 @@ public class DownloadsPane extends AnchorPane {
 
     private Runnable getParseTask(FlowPane pane) {
         return () -> {
-            try (Stream<Path> stream = Files.walk(FileUtils.getPvDownloadsPath())) {
+            try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile).filter(p -> {
+                String file = p.toString();
+                return file.endsWith(".mp4") || file.endsWith(FileUtils.PORN_VIEWER_SIGN);
+            })) {
                 List<Path> paths = stream.toList();
                 List<DownloadedVideoCard> cards = paths.stream().filter(Files::isRegularFile).map(p -> {
                     DownloadedVideoCard card = new DownloadedVideoCard(pane);

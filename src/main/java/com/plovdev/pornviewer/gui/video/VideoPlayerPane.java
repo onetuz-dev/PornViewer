@@ -18,7 +18,7 @@ public class VideoPlayerPane extends Stage {
     private static final Logger log = LoggerFactory.getLogger(VideoPlayerPane.class);
 
     public VideoPlayerPane(VideoCard card) {
-        super();
+        log.info("In player");
         PornVideoAdapter adapter = UserPreferences.get("0000").getPornAdapter();
         PornParser parser = adapter.getParser();
 
@@ -31,7 +31,7 @@ public class VideoPlayerPane extends Stage {
         log.info("Avail URLs: {}", urls);
         Media media = new Media(urls.containsKey("1080p")? urls.get("1080p") : urls.get("HQ"));
 
-        VideoPlyer plyer = new VideoPlyer(media, card.getUrl(), card.getTitle(), this);
+        VideoPlyer plyer = new VideoPlyer(media, card, this);
 
         Scene scene = new Scene(plyer, 1000, 600);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/white.css")).toExternalForm());

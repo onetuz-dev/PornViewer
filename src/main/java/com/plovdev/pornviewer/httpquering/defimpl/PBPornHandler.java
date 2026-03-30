@@ -67,6 +67,24 @@ public class PBPornHandler implements PornHandler {
         return "";
     }
 
+    public String executePost(String url, String body) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return response.body();
+            }
+        } catch (Exception e) {
+            log.error("Error to post query: ", e);
+        }
+        return "";
+    }
+
     @Override
     public void downloadPorn(String url, String filename) {
         log.info("Start loading file: {}", filename);

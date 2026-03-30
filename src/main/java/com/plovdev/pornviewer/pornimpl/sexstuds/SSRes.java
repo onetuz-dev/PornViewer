@@ -29,4 +29,24 @@ public class SSRes implements Resourcer {
     public String categories() {
         return "/categories";
     }
+
+    @Override
+    public String videoUrl() {
+        return "/moovie";
+    }
+
+    @Override
+    public String modelsSearchUrl() {
+        return "/search/";
+    }
+
+    @Override
+    public String modelUrl(String model) {
+        return modelsUrl() + model;
+    }
+
+    @Override
+    public String buildVideoUrlFromId(int id) {
+        return baseUrl() + videoUrl() + id;
+    }
 }

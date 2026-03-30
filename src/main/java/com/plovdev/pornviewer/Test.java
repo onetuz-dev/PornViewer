@@ -1,6 +1,6 @@
 package com.plovdev.pornviewer;
 
-import com.plovdev.pornviewer.databases.FavoriteVideos;
+import com.plovdev.pornviewer.utility.deeplink.Deeplink;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
@@ -11,9 +11,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 
 public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
@@ -21,7 +25,25 @@ public class Test {
     private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public static void main(String[] args) throws Exception {
-        FavoriteVideos.updateUrls("http://5porno365.info");
+        URI link = URI.create("pv://share/video?id=123");
+        System.out.println(new Deeplink(link));
+    }
+
+    public static void encryptDatabase(String dbPath, String newPassword) {
+        try {
+            Connection conn = DriverManager.getConnection(dbPath);
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("PRAGMA rekey = '" + escapeString(newPassword) + "'");
+                System.out.println("✅ База успешно зашифрована");
+            }
+            conn.close();
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка при шифровании: " + e.getMessage());
+        }
+    }
+
+    private static String escapeString(String s) {
+        return s.replace("'", "''");
     }
 
     private static void encrypt(Path path) {
