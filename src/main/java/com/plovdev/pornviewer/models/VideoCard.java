@@ -1,6 +1,7 @@
 package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.databases.FavoriteVideos;
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
@@ -14,9 +15,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 public class VideoCard extends PornCard {
@@ -108,9 +112,7 @@ public class VideoCard extends PornCard {
 
     @Override
     public void render() {
-        System.out.println("Displaying");
         DefPornParser parser = new DefPornParser();
-        // Главный контейнер - StackPane для наложения элементов
         StackPane mainContainer = new StackPane();
         mainContainer.setMaxWidth(400);
 
@@ -133,7 +135,8 @@ public class VideoCard extends PornCard {
             player.show();
         });
         titleLabel.getStyleClass().add("video-title");
-        titleLabel.setMaxWidth(350);
+        titleLabel.setMaxWidth(300);
+        titleLabel.setWrapText(true);
         Label dur = new Label(duration);
         dur.getStyleClass().add("marker");
 
@@ -216,10 +219,35 @@ public class VideoCard extends PornCard {
     protected MenuItem getLoader(String qual) {
         MenuItem item = new MenuItem(qual);
         item.setOnAction(e -> {
-            Thread thread = new Thread(() -> handler.downloadPorn(info.getUrls().get(qual), getTitle()));
+            Thread thread = new Thread(() -> {
+                Media media = new Media(info.getUrls().get(qual));
+                byte[] preview = handler.getBytes(getPic());
+                handler.downloadPorn(info.getUrls().get(qual), getTitle(), new VideoMetadata(getTitle(), "video/mp4", media.getDuration(), preview == null ? new byte[0] : preview));
+            });
             thread.start();
         });
         return item;
+    }
+
+    public String getVideoDuration(javafx.util.Duration total) {
+        if (total != javafx.util.Duration.UNKNOWN) {
+            BigDecimal mills = new BigDecimal(String.valueOf(total.toMillis()));
+
+            BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
+
+            int hours = totalSeconds.intValue() / (60*60);
+            String h = "";
+            if (hours != 0) h = hours+":";
+
+            BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
+            BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
+
+            long sec = Math.round(seconds.doubleValue());
+            long min = Math.round(minutes.doubleValue());
+
+            return h+String.format("%2s:%2s", min, sec);
+        }
+        return "00:00";
     }
 
     @Override

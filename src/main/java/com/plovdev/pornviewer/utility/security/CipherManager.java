@@ -17,8 +17,9 @@ import java.util.Arrays;
 import java.util.Base64;
 
 public class CipherManager {
-    private final Logger logger = LoggerFactory.getLogger("BitGetSecurityService");
+    private final Logger logger = LoggerFactory.getLogger(CipherManager.class);
     private static final String ALG = "AES/CBC/PKCS5Padding";
+    private static final String ALG_NP = "AES/CTR/NoPadding";
     private final SecretKey key;
     private final IvParameterSpec spec;
 
@@ -54,6 +55,17 @@ public class CipherManager {
         return new IvParameterSpec(iv);
     }
 
+    public byte[] encrypt(byte[] to) {
+        try {
+            Cipher cipher = Cipher.getInstance(ALG_NP);
+            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+            return cipher.doFinal(to);
+        } catch (Exception e) {
+            logger.error("Произошла ошибка шифрования байтов: {}", e.getMessage());
+        }
+        return to;
+    }
+
     public String encrypt(String to) {
         try {
             Cipher cipher = Cipher.getInstance(ALG);
@@ -68,7 +80,6 @@ public class CipherManager {
     }
 
     public String decrypt(String from) {
-        System.out.println(from);
         try {
             Cipher cipher = Cipher.getInstance(ALG);
             cipher.init(Cipher.DECRYPT_MODE, key, spec);
@@ -79,6 +90,17 @@ public class CipherManager {
             return new String(decrypted);
         } catch (Exception e) {
             logger.error("Произошла ошибка расшифровки ключей: {}", e.getMessage());
+        }
+        return from;
+    }
+
+    public byte[] decrypt(byte[] from) {
+        try {
+            Cipher cipher = Cipher.getInstance(ALG_NP);
+            cipher.init(Cipher.DECRYPT_MODE, key, spec);
+            return cipher.doFinal(from);
+        } catch (Exception e) {
+            logger.error("Произошла ошибка расшифровки байтов: {}", e.getMessage());
         }
         return from;
     }

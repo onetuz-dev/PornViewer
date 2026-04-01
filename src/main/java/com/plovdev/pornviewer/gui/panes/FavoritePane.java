@@ -3,6 +3,7 @@ package com.plovdev.pornviewer.gui.panes;
 import com.plovdev.pornviewer.databases.FavoriteGroupProvider;
 import com.plovdev.pornviewer.databases.FavoriteVideos;
 import com.plovdev.pornviewer.databases.UserPreferences;
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.httpquering.PornParser;
@@ -23,6 +24,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -353,7 +356,10 @@ public class FavoritePane extends AnchorPane {
                         if (info == null) {
                             info = parser.parseVideo(video.getUrl());
                         }
-                        handler.downloadPorn(info.getUrls().get(qual), video.getTitle());
+                        MediaPlayer player = new MediaPlayer(new Media(info.getUrls().get(qual)));
+                        Thread.sleep(500);
+                        byte[] preview = handler.getBytes(video.getPic());
+                        handler.downloadPorn(info.getUrls().get(qual), video.getTitle(), new VideoMetadata(video.getTitle(), "video/mp4", player.getTotalDuration(), preview == null ? new byte[0] : preview));
                     } catch (Exception ex) {
                         log.error("Porn loading error: ", ex);
                     }

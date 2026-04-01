@@ -1,7 +1,6 @@
 package com.plovdev.pornviewer.gui.panes.pagination;
 
 import com.plovdev.pornviewer.gui.filters.TrinaglePaginationBlock;
-import com.plovdev.pornviewer.httpquering.PornHandler;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
@@ -79,7 +78,7 @@ public class MainPagination {
     private Runnable getParseTask(FlowPane pane, String url) {
         return () -> {
             try {
-                PornHandler handler = new PBPornHandler();
+                PBPornHandler handler = new PBPornHandler();
                 System.out.println("start");
                 String htmlPage = handler.requestPorn(url);
                 nextUrl = handler.getNextLink(htmlPage);

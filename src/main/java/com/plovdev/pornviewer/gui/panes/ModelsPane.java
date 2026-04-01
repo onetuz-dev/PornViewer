@@ -2,7 +2,10 @@ package com.plovdev.pornviewer.gui.panes;
 
 import com.plovdev.pornviewer.databases.UserPreferences;
 import com.plovdev.pornviewer.events.listeners.ClickListener;
-import com.plovdev.pornviewer.httpquering.*;
+import com.plovdev.pornviewer.httpquering.PornChecker;
+import com.plovdev.pornviewer.httpquering.PornParser;
+import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
+import com.plovdev.pornviewer.httpquering.Resourcer;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.ModelCard;
 import com.plovdev.pornviewer.models.ModelInfo;
@@ -32,7 +35,7 @@ public class ModelsPane extends AnchorPane {
     private final Resourcer resourcer;
     private final PornVideoAdapter adapter;
     private final PornChecker checker;
-    private final PornHandler handler = new PBPornHandler();
+    private final PBPornHandler handler = new PBPornHandler();
 
     public ModelsPane() {
         adapter = UserPreferences.get("0000").getPornAdapter();
@@ -153,7 +156,6 @@ public class ModelsPane extends AnchorPane {
             try {
                 if (!checker.hasModels()) return;
 
-                PornHandler handler = new PBPornHandler();
                 PornParser parser = adapter.getParser();
                 List<ModelInfo> cards = parser.getModels(handler.requestPorn(url));
                 cards.forEach(e -> {

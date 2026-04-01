@@ -1,6 +1,9 @@
 package com.plovdev.pornviewer;
 
-import com.plovdev.pornviewer.utility.deeplink.Deeplink;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
@@ -11,13 +14,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.time.Duration;
 
 public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
@@ -25,8 +28,7 @@ public class Test {
     private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public static void main(String[] args) throws Exception {
-        URI link = URI.create("pv://share/video?id=123");
-        System.out.println(new Deeplink(link));
+        encrypt(Path.of("/Users/mac/PornViewer/downloads/tONDTiExs1ZEwKglZ7g3PIkHresUPpizfaSMiLwP34vJ7w7jdO0i7qrxxNZhnR4AOvHFLvl9IioCEDZnqEWFwI7S9G3ODwgE-qEv7JenPlKqjmVCiWqeX0pn9_eKF77eb29a674cce9b3fff1010a658070c8933"));
     }
 
     public static void encryptDatabase(String dbPath, String newPassword) {
@@ -52,17 +54,27 @@ public class Test {
         String filePath = path.toString();
         String filePathTmp = filePath + ".tmp";
         Path tempPath = Path.of(filePathTmp);
+        JsonObject object = new JsonObject();
+        object.addProperty("name", "Сделал массаж мачехе и поимел ее заодно!");
+        object.addProperty("duration", String.valueOf(Duration.ofSeconds(17 * 60 + 50).toMillis()));
+        object.addProperty("mime", "video/mp4");
+        String json = new Gson().toJson(object);
+        System.out.println(json);
+        System.out.println(json.length());
+
+        VideoMetadata metadata = new VideoMetadata(json, new byte[0]);
+        System.out.println(metadata);
 
         try (InputStream in = new FileInputStream(filePath);
              FileOutputStream file = new FileOutputStream(filePathTmp)) {
+            VideoWriter.writeMetadataToStream(file, metadata);
             long totalRead = 0;
             int read;
             byte[] buffer = new byte[8192];
             while ((read = in.read(buffer)) != -1) {
                 byte[] originalChunk = new byte[read];
                 System.arraycopy(buffer, 0, originalChunk, 0, read);
-                byte[] encryptedChunk = cipher.encrypt(originalChunk, totalRead);
-                file.write(encryptedChunk);
+                file.write(originalChunk);
                 totalRead += read;
             }
             file.flush();

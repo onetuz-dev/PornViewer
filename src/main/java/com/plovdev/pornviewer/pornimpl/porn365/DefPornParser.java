@@ -12,11 +12,8 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -138,114 +135,8 @@ public class DefPornParser implements PornParser {
 
     @Override
     public VideoInfo parseVideo(String videoUrl) {
-        VideoInfo info = new VideoInfo();
-
-        try {
-            PBPornHandler handler = new PBPornHandler();
-            String html = handler.requestPorn(videoUrl);
-            Document doc = Jsoup.parse(html);
-            Map<String, String> links = new HashMap<>();
-            Elements urls = doc.select("div.quality_chooser a[href]");
-            urls.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-                links.put(key, url);
-            });
-            info.setUrls(links);
-
-
-            Map<String, String> categs = new HashMap<>();
-            Elements categories = doc.select("div.video-categories a[href]");
-            categories.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-                categs.put(key, url);
-            });
-            info.setCategories(categs);
-
-
-            Map<String, String> mds = new HashMap<>();
-            Elements models = doc.select("div.video-models a[href]");
-            models.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-                mds.put(key, url);
-            });
-            info.setModels(mds);
-
-
-            String title = doc.selectFirst("title").text();
-            info.setTitle(title);
-
-            String pageUrl = doc.select("link[rel=canonical]").attr("href");
-            info.setUrl(pageUrl);
-
-            int id = Integer.parseInt(pageUrl.substring(pageUrl.lastIndexOf('/') + 1));
-            info.setId(id);
-
-            Element picture = doc.selectFirst("link[itemprop=thumbnailUrl]");
-            if (picture != null) {
-                info.setPic(picture.attr("href"));
-            }
-
-            Element durationMeta = doc.selectFirst("meta[itemprop=duration]");
-            if (durationMeta != null) {
-                String rawDuration = durationMeta.attr("content");
-                Duration d = Duration.parse(rawDuration);
-                long h = d.toHours();
-                long m = d.toMinutesPart();
-                long s = d.toSecondsPart();
-
-                String timeFormatted = (h > 0) ? String.format("%02d:%02d:%02d", h, m, s) : String.format("%02d:%02d", m, s);
-                info.setDuration(timeFormatted);
-            }
-
-            Element viewsElement = doc.selectFirst("span[itemprop=interactionCount]");
-            if (viewsElement != null) {
-                String viewsString = viewsElement.text();
-                int viewsCount = Integer.parseInt(viewsString);
-                info.setViews(viewsCount);
-            }
-
-            Element ratingElement = doc.selectFirst(".rating_score");
-            if (ratingElement != null) {
-                String rating = ratingElement.ownText().trim();
-                info.setRating(rating);
-            }
-
-            Elements descr = doc.select("div.story_desription");
-            descr.forEach(e -> info.setDescription(e.text().trim()));
-
-            Map<String, String> tgs = new HashMap<>();
-            Elements tags = doc.select("div.video-tags a[href]");
-            tags.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-                tgs.put(key, url);
-            });
-            info.setTags(tgs);
-
-            Map<String, String> times = new HashMap<>();
-            Elements timecodes = doc.select("div.video-tags span");
-            timecodes.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-                times.put(key, url);
-            });
-            info.setTimeCodes(times);
-
-
-            List<Comment> commentsList = new ArrayList<>();
-            Elements comments = doc.select("div.video-tags span");
-            comments.forEach(e -> {
-                String key = e.text().trim();
-                String url = e.attr("href");
-            });
-            info.setComments(commentsList);
-        } catch (Exception e) {
-            log.error("Error parsing video: ", e);
-        }
-        return info;
+        PBPornHandler handler = new PBPornHandler();
+        return VideoInfoParser.parseInfo(Jsoup.parse(handler.requestPorn(videoUrl)));
     }
 
     @Override

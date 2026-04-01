@@ -5,6 +5,7 @@ import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.AppInfo;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
+import com.sun.glass.ui.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

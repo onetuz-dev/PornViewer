@@ -34,7 +34,6 @@ public class VideoPlyer extends StackPane {
     private boolean isPlay = false;
 
     public VideoPlyer(Media media, VideoCard card, Stage stage) {
-        System.out.println(media.getMetadata());
         mediaPlayer = new MediaPlayer(media);
         mediaView = new MediaView(mediaPlayer);
         mediaView.fitWidthProperty().bind(widthProperty());

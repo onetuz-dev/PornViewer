@@ -26,7 +26,7 @@ public class CategoryManager extends VBox {
     private static final ObservableList<Hyperlink> originNots = FXCollections.observableArrayList();
     private static final FilteredList<Hyperlink> filtereds = new FilteredList<>(originNots, p -> true);
     private static final SortedList<Hyperlink> sortered = new SortedList<>(filtereds);
-    private final PornHandler handler = new PBPornHandler();
+    private final PBPornHandler handler = new PBPornHandler();
     private final Resourcer resourcer;
 
     public CategoryManager(Resourcer rsc) {

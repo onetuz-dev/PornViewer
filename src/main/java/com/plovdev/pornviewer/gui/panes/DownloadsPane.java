@@ -1,5 +1,7 @@
 package com.plovdev.pornviewer.gui.panes;
 
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileListener;
 import com.plovdev.pornviewer.gui.filters.FilterBox;
@@ -26,6 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -155,15 +160,17 @@ public class DownloadsPane extends AnchorPane {
                 return file.endsWith(".mp4") || file.endsWith(FileUtils.PORN_VIEWER_SIGN);
             })) {
                 List<Path> paths = stream.toList();
-                List<DownloadedVideoCard> cards = paths.stream().filter(Files::isRegularFile).map(p -> {
+                List<DownloadedVideoCard> cards = paths.stream().map(p -> {
                     DownloadedVideoCard card = new DownloadedVideoCard(pane);
+                    File file = p.toFile();
+
                     try {
-                        File file = p.toFile();
                         BasicFileAttributes attributes = Files.readAttributes(p, BasicFileAttributes.class);
                         FileTime time = attributes.creationTime();
                         LocalDateTime dateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneId.systemDefault());
                         card.setDate(dateTime.format(createFormatter));
                         card.setTitle(getFileName(p.getFileName().toString()));
+                        log.info("Title: {}, file: {}", card.getTitle(), p.getFileName().toString());
                         card.setPath(file.toURI().toString());
 
                         card.setDeleteRun(() -> {
@@ -183,6 +190,14 @@ public class DownloadsPane extends AnchorPane {
                         BigDecimal size = new BigDecimal(String.valueOf(file.length())).divide(new BigDecimal("1000000.0"), 10, RoundingMode.HALF_UP);
                         DecimalFormat format = new DecimalFormat("#0.00");
                         card.setSize(format.format(size));
+
+                        try (InputStream inputFile = new FileInputStream(file)) {
+                            VideoMetadata metadata = VideoReader.readMetadata(inputFile);
+                            card.setDuration(getVideoDuration(metadata.getTotalDuration()));
+                            card.setTitle(metadata.getOriginalName());
+                        } catch (IOException e) {
+                            log.error("Error read metadata: ", e);
+                        }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
                     }
@@ -200,6 +215,27 @@ public class DownloadsPane extends AnchorPane {
                 System.out.println(e.getMessage());
             }
         };
+    }
+
+    protected String getVideoDuration(javafx.util.Duration total) {
+        if (total != javafx.util.Duration.UNKNOWN) {
+            BigDecimal mills = new BigDecimal(String.valueOf(total.toMillis()));
+
+            BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
+
+            int hours = totalSeconds.intValue() / (60*60);
+            String h = "";
+            if (hours != 0) h = hours+":";
+
+            BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
+            BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
+
+            long sec = Math.round(seconds.doubleValue());
+            long min = Math.round(minutes.doubleValue());
+
+            return h+String.format("%2s:%2s", min, sec);
+        }
+        return "00:00";
     }
 
     private String getFileName(String name) {

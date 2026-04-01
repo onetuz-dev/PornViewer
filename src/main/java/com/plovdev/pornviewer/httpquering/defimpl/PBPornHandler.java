@@ -1,8 +1,9 @@
 package com.plovdev.pornviewer.httpquering.defimpl;
 
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
-import com.plovdev.pornviewer.httpquering.PornHandler;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
@@ -24,7 +25,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-public class PBPornHandler implements PornHandler {
+public class PBPornHandler {
     private static final Logger log = LoggerFactory.getLogger(PBPornHandler.class);
     private static final CipherManager CM = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
@@ -48,7 +49,6 @@ public class PBPornHandler implements PornHandler {
     public PBPornHandler() {
     }
 
-    @Override
     public String requestPorn(String url) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -65,6 +65,24 @@ public class PBPornHandler implements PornHandler {
             log.error("Error to request porn: ", e);
         }
         return "";
+    }
+
+    public byte[] getBytes(String url) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .GET()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if (response.statusCode() == 200) {
+                return response.body();
+            }
+        } catch (Exception e) {
+            log.error("Error to request porn: ", e);
+        }
+        return null;
     }
 
     public String executePost(String url, String body) {
@@ -85,8 +103,7 @@ public class PBPornHandler implements PornHandler {
         return "";
     }
 
-    @Override
-    public void downloadPorn(String url, String filename) {
+    public void downloadPorn(String url, String filename, VideoMetadata metadata) {
         log.info("Start loading file: {}", filename);
         EventListener.notifyListeners("START_DWONLOAD:" + filename);
         String encryptedFileName = CM.encrypt(filename) + FileUtils.PORN_VIEWER_SIGN;
@@ -96,6 +113,8 @@ public class PBPornHandler implements PornHandler {
         VideoCipherrer cipher = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
 
         try (FileOutputStream file = new FileOutputStream(fileOut)) {
+            VideoWriter.writeMetadataToStream(file, metadata);
+
             // HTTP запрос
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -153,12 +172,6 @@ public class PBPornHandler implements PornHandler {
         }
         return 0;
     }
-
-    @Override
-    public void setRandomHeaders(HttpRequest request) {
-
-    }
-
     public String getNextLink(String html) {
         Document document = Jsoup.parse(html);
         Elements elements = document.select("div.navigation");

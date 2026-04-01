@@ -4,36 +4,24 @@ import java.util.List;
 import java.util.Map;
 
 public class VideoInfo {
-    private String rating;
+    private List<Comment> comments;
+
     private int views;
+    private String rating;
+    private Map<String, String> urls;
+    private Map<String, String> timeCodes;
+    private Map<String, String> tags;
+    private Map<String, String> models;
+    private Map<String, String> categories;
     private String duration;
     private String pic;
     private int id;
-    private Map<String, String> urls;
-    private Map<String, String> categories;
-    private Map<String, String> models;
     private String description;
-    private Map<String, String> tags;
-    private Map<String, String> timeCodes;
-    private List<Comment> comments;
     private String title;
     private String url;
 
     public VideoInfo() {
 
-    }
-
-    @Override
-    public String toString() {
-        return "VideoInfo{" +
-                "urls=" + urls +
-                ", categories=" + categories +
-                ", models=" + models +
-                ", description='" + description + '\'' +
-                ", tags=" + tags +
-                ", timeCodes=" + timeCodes +
-                ", comments=" + comments +
-                '}';
     }
 
     public String getPic() {
@@ -146,5 +134,25 @@ public class VideoInfo {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    @Override
+    public String toString() {
+        return "VideoInfo{" +
+                "rating='" + rating + '\'' +
+                ", views=" + views +
+                ", duration='" + duration + '\'' +
+                ", urls=" + urls +
+                ", categories=" + categories +
+                ", models=" + models +
+                ", tags=" + tags +
+                ", timeCodes=" + timeCodes +
+                ", comments=" + comments +
+                ", pic='" + pic + '\'' +
+                ", id=" + id +
+                ", description='" + description + '\'' +
+                ", title='" + title + '\'' +
+                ", url='" + url + '\'' +
+                '}';
     }
 }

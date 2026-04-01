@@ -43,6 +43,21 @@
                   </excludes>
                 </filter>
                 <filter>
+                  <artifact>io.github.willena:sqlite-jdbc</artifact>
+                  <excludes>
+                    <exclude>org/sqlite/native/Windows/**</exclude>
+                    <exclude>org/sqlite/native/Linux/**</exclude>
+                    <exclude>org/sqlite/native/linux/**</exclude>
+                    <exclude>org/sqlite/native/FreeBSD/**</exclude>
+                    <exclude>org/sqlite/native/Android/**</exclude>
+                    <exclude>org/sqlite/native/Linux-Android/**</exclude>
+                    <exclude>org/sqlite/native/Linux-Musl/**</exclude>
+                    <exclude>org/sqlite/native/readme.txt</exclude>
+                    <exclude>META-INF/native-image/**</exclude>
+                    <exclude>META-INF/substrate/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
                   <artifact>org.openjfx:javafx-base</artifact>
                   <excludes>
                     <exclude>META-INF/substrate/**</exclude>
@@ -70,7 +85,6 @@
               <createSourcesJar>false</createSourcesJar>
               <shadedArtifactAttached>false</shadedArtifactAttached>
               <minimizeJar>false</minimizeJar>
-              <compression>9</compression>
               <outputDirectory>./input-pv</outputDirectory>
               <finalName>PornViewer</finalName>
             </configuration>

@@ -10,12 +10,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 
 public class DownloadedVideoCard extends VideoCard {
@@ -113,12 +110,11 @@ public class DownloadedVideoCard extends VideoCard {
         AnchorPane.setLeftAnchor(title, 120.0);
         anchorPane.getChildren().add(title);
 
-        Label durLabel = new Label("0:00");
+        Label durLabel = new Label(duration);
         durLabel.getStyleClass().add("marker-download");
         AnchorPane.setBottomAnchor(durLabel,10.0);
         AnchorPane.setLeftAnchor(durLabel, 120.0);
         anchorPane.getChildren().add(durLabel);
-
 
         Label dateLabel = new Label(getDate());
         dateLabel.getStyleClass().add("marker-download");
@@ -153,27 +149,6 @@ public class DownloadedVideoCard extends VideoCard {
         }
 
         getChildren().add(anchorPane);
-    }
-
-    protected String getVideoDuration(Duration total) {
-        if (total != Duration.UNKNOWN) {
-            BigDecimal mills = new BigDecimal(String.valueOf(total.toMillis()));
-
-            BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
-
-            int hours = totalSeconds.intValue() / (60*60);
-            String h = "";
-            if (hours != 0) h = hours+":";
-
-            BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
-            BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
-
-            long sec = Math.round(seconds.doubleValue());
-            long min = Math.round(minutes.doubleValue());
-
-            return h+String.format("%2s:%2s", min, sec);
-        }
-        return "00:00";
     }
 
     private Region getVRegion() {

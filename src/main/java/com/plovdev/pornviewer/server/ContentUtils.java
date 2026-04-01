@@ -1,5 +1,7 @@
 package com.plovdev.pornviewer.server;
 
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
@@ -16,7 +18,7 @@ import java.util.Map;
 public class ContentUtils {
     private static final Logger log = LoggerFactory.getLogger(ContentUtils.class);
     private static final VideoCipherrer VD = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
-    private static final int BUFFER_SIZE = 8192;
+    private static final int BUFFER_SIZE = 131072;
 
     public static void sendFileRange(HttpExchange exchange, Chunk chunk, File file, boolean needDecrypt) throws Exception {
         long start = chunk.getStart();
@@ -26,11 +28,26 @@ public class ContentUtils {
 
         log.info("Sending range {}-{}, needDecrypt: {}", start, end, needDecrypt);
 
+
+        try {
+            VideoMetadata metadata = VideoReader.readMetadata(new FileInputStream(file));
+            int metaSize = metadata.getTotalMetaSize();
+            if (contentLength > 100) {
+                contentLength -= metaSize;
+            }
+            if (start == 0) {
+                start = metaSize;
+            }
+        } catch (Exception e) {
+            log.error("Error to skip metadata bytes: ", e);
+        }
+        log.info("Start: {}, length: {}", start, contentLength);
+
         exchange.getResponseHeaders().set("Content-Type", "video/mp4");
         exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
         exchange.getResponseHeaders().set("Connection", "keep-alive");
         exchange.getResponseHeaders().set("Keep-Alive", "timeout=600");
-        exchange.getResponseHeaders().set("Content-Range", "bytes " + start + "-" + end + "/" + fileSize);
+        exchange.getResponseHeaders().set("Content-Range", "bytes " + chunk.getStart() + "-" + end + "/" + fileSize);
         exchange.sendResponseHeaders(206, contentLength);
 
         try (OutputStream os = exchange.getResponseBody()) {
@@ -63,7 +80,6 @@ public class ContentUtils {
             long alignedStart = start - skip;
             raf.seek(alignedStart);
 
-            // Инициализируем шифр ОДИН РАЗ на начало выровненного блока
             Cipher cipher = VD.createCipher(Cipher.DECRYPT_MODE, alignedStart);
 
             // Буфер 128 КБ — золотая середина

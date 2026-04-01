@@ -1,5 +1,7 @@
 package com.plovdev.pornviewer.server;
 
+import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -8,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -69,9 +72,18 @@ public class SafeHttpHandler implements HttpHandler {
             File file = checkFile(exchange, params);
             log.info("Sending head request. File: {}", file);
 
+            long length = file.length();
+            try {
+                VideoMetadata metadata = VideoReader.readMetadata(new FileInputStream(file));
+                int metaSize = metadata.getTotalMetaSize();
+                length -=metaSize;
+            } catch (Exception e) {
+                log.error("Error to skip metadata bytes: ", e);
+            }
+
             exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
             exchange.getResponseHeaders().set("Content-Type", "video/mp4");
-            exchange.getResponseHeaders().set("Content-Length", String.valueOf(file.length()));
+            exchange.getResponseHeaders().set("Content-Length", String.valueOf(length));
             exchange.sendResponseHeaders(200, -1);
         } catch (Exception e) {
             log.error("Head processing error: ", e);
