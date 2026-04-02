@@ -30,14 +30,7 @@ public class VideoInfoParser {
                     info.setUrl(content);
                     info.setId(Integer.parseInt(content.substring(URL_ID_OFFSET)));
                 }
-                case DURATION -> {
-                    Duration duration = Duration.ofSeconds(Long.parseLong(content));
-                    long h = duration.toHours();
-                    long m = duration.toMinutesPart();
-                    long s = duration.toSecondsPart();
-                    String timeFormatted = (h > 0) ? String.format("%02d:%02d:%02d", h, m, s) : String.format("%02d:%02d", m, s);
-                    info.setDuration(timeFormatted);
-                }
+                case DURATION -> info.setDuration(Duration.ofSeconds(Long.parseLong(content)));
                 case DESCRIPTION -> info.setDescription(content);
                 case PREVIEW -> info.setPic(content);
             }

@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -50,16 +49,17 @@ public class SafeHttpHandler implements HttpHandler {
         } else if (method.equals(GET)) {
             try {
                 Headers headers = exchange.getRequestHeaders();
+                File file = checkFile(exchange, params);
                 if (headers != null) {
                     List<String> ranges = headers.get("Range");
                     if (ranges != null && !ranges.isEmpty()) {
                         String range = ranges.getFirst();
-                        executeGet(exchange, parseChunk(range), params);
+                        executeGet(exchange, parseChunk(range, file), params);
                     } else {
-                        executeGet(exchange, parseChunk(String.valueOf(checkFile(exchange, params).length())), params);
+                        executeGet(exchange, parseChunk(String.valueOf(file.length()), file), params);
                     }
                 } else {
-                    executeGet(exchange, parseChunk(String.valueOf(checkFile(exchange, params).length())), params);
+                    executeGet(exchange, parseChunk(String.valueOf(file.length()), file), params);
                 }
             } catch (Exception e) {
                 log.error("Error to process get request: ", e);
@@ -72,18 +72,18 @@ public class SafeHttpHandler implements HttpHandler {
             File file = checkFile(exchange, params);
             log.info("Sending head request. File: {}", file);
 
-            long length = file.length();
+            long contentLength;
             try {
-                VideoMetadata metadata = VideoReader.readMetadata(new FileInputStream(file));
-                int metaSize = metadata.getTotalMetaSize();
-                length -=metaSize;
+                VideoMetadata metadata = VideoReader.readMetadata(file);
+                contentLength = file.length() - metadata.getTotalMetaSize();
             } catch (Exception e) {
-                log.error("Error to skip metadata bytes: ", e);
+                log.debug("No metadata found, sending full file");
+                contentLength = file.length();
             }
 
             exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
             exchange.getResponseHeaders().set("Content-Type", "video/mp4");
-            exchange.getResponseHeaders().set("Content-Length", String.valueOf(length));
+            exchange.getResponseHeaders().set("Content-Length", String.valueOf(contentLength));
             exchange.sendResponseHeaders(200, -1);
         } catch (Exception e) {
             log.error("Head processing error: ", e);
@@ -119,11 +119,47 @@ public class SafeHttpHandler implements HttpHandler {
         return params;
     }
 
-    private Chunk parseChunk(String range) {
-        range = range.substring(6); // starts with bytes=
+    private Chunk parseChunk(String range, File file) {
+        if (range == null || !range.startsWith("bytes=")) {
+            throw new IllegalArgumentException("Invalid range header format. Expected 'bytes=...'");
+        }
 
-        long start = Long.parseLong(range.substring(0, range.lastIndexOf("-")));
-        long end = Long.parseLong(range.substring(range.lastIndexOf("-") + 1));
-        return new Chunk(start, end);
+        String rangeValue = range.substring(6); // Remove "bytes=" prefix
+
+        int dashIndex = rangeValue.lastIndexOf("-");
+        if (dashIndex == -1) {
+            throw new IllegalArgumentException("Invalid range format. Missing hyphen separator.");
+        }
+
+        try {
+            String startStr = rangeValue.substring(0, dashIndex);
+            String endStr = rangeValue.substring(dashIndex + 1);
+
+            long start = startStr.isEmpty() ? 0 : Long.parseLong(startStr);
+            long end = getChunkEnd(file, endStr, start);
+
+            return new Chunk(start, end);
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid numeric values in range: " + rangeValue, e);
+        }
+    }
+
+    private long getChunkEnd(File file, String endStr, long start) {
+        long end = endStr.isEmpty() ? file.length() - 1 : Long.parseLong(endStr);
+
+        // Validate range bounds
+        if (start < 0) {
+            throw new IllegalArgumentException("Start position cannot be negative: " + start);
+        }
+
+        if (end >= file.length()) {
+            end = file.length() - 1;
+        }
+
+        if (start > end) {
+            throw new IllegalArgumentException(String.format("Invalid range: start (%d) > end (%d)", start, end));
+        }
+        return end;
     }
 }

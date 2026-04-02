@@ -3,7 +3,7 @@ package com.plovdev.pornviewer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
+import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
@@ -28,7 +28,9 @@ public class Test {
     private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public static void main(String[] args) throws Exception {
-        encrypt(Path.of("/Users/mac/PornViewer/downloads/tONDTiExs1ZEwKglZ7g3PIkHresUPpizfaSMiLwP34vJ7w7jdO0i7qrxxNZhnR4AOvHFLvl9IioCEDZnqEWFwI7S9G3ODwgE-qEv7JenPlKqjmVCiWqeX0pn9_eKF77eb29a674cce9b3fff1010a658070c8933"));
+        PBPornHandler handler = new PBPornHandler();
+        String body = handler.requestPorn("https://vps402.strip2.co/");
+        Files.writeString(Path.of("stripe/main.html"), body);
     }
 
     public static void encryptDatabase(String dbPath, String newPassword) {
@@ -67,7 +69,7 @@ public class Test {
 
         try (InputStream in = new FileInputStream(filePath);
              FileOutputStream file = new FileOutputStream(filePathTmp)) {
-            VideoWriter.writeMetadataToStream(file, metadata);
+            //VideoWriter.writeMetadataToStream(file, metadata);
             long totalRead = 0;
             int read;
             byte[] buffer = new byte[8192];

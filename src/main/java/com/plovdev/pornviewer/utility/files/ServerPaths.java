@@ -1,6 +1,8 @@
 package com.plovdev.pornviewer.utility.files;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +10,7 @@ import java.util.Objects;
 
 public class ServerPaths {
     public static final String SERVER_BASE = "http://127.0.0.1:3535";
+    private static final Logger log = LoggerFactory.getLogger(ServerPaths.class);
     private static String token;
     private static volatile ServerPaths INSTANCE = null;
 
@@ -37,7 +40,9 @@ public class ServerPaths {
     public String replaceFileToHttpPath(String file) {
         file = file.substring(file.lastIndexOf("/"));
         boolean needDecrypt = file.endsWith(FileUtils.PORN_VIEWER_SIGN);
-        return String.format(SERVER_BASE + "/video?file=%s&needDecrypt=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), needDecrypt, token);
+        String path = String.format(SERVER_BASE + "/video?file=%s&needDecrypt=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), needDecrypt, token);
+        log.info("Link: {}", path);
+        return path;
     }
     public String getInfoUrl() {
         return String.format(SERVER_BASE + "/info?token=%s", token);

@@ -24,6 +24,20 @@ public class LoadersUtils {
         }
         return value;
     }
+    public static long bytesToLong(byte[] bytes) {
+        long value = 0;
+        for (int i = 0; i < bytes.length; i++) {
+            value |= (long) (bytes[i] & 0xFF) << (8 * i);
+        }
+        return value;
+    }
+    public static byte[] longToBytes(long value) {
+        byte[] bytes = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            bytes[i] = (byte) (value >> (8 * i));
+        }
+        return bytes;
+    }
 
 
     public static byte[] readFileToByteArray(File file) throws IOException {

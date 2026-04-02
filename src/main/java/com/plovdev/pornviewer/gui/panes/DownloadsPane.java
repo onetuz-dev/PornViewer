@@ -5,6 +5,7 @@ import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileListener;
 import com.plovdev.pornviewer.gui.filters.FilterBox;
+import com.plovdev.pornviewer.gui.video.DurationUtils;
 import com.plovdev.pornviewer.models.DownloadedVideoCard;
 import com.plovdev.pornviewer.models.DownloadingVideoCard;
 import com.plovdev.pornviewer.models.VideoCard;
@@ -26,11 +27,8 @@ import javafx.scene.layout.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -191,12 +189,12 @@ public class DownloadsPane extends AnchorPane {
                         DecimalFormat format = new DecimalFormat("#0.00");
                         card.setSize(format.format(size));
 
-                        try (InputStream inputFile = new FileInputStream(file)) {
-                            VideoMetadata metadata = VideoReader.readMetadata(inputFile);
-                            card.setDuration(getVideoDuration(metadata.getTotalDuration()));
+                        try {
+                            VideoMetadata metadata = VideoReader.readMetadata(file);
                             card.setTitle(metadata.getOriginalName());
+                            card.setDuration(DurationUtils.getVideoDuration(metadata.getTotalDuration()));
                         } catch (IOException e) {
-                            log.error("Error read metadata: ", e);
+                            log.error("Error read metadata: {}", e.getMessage());
                         }
                     } catch (Exception e) {
                         System.err.println(e.getMessage());
@@ -215,27 +213,6 @@ public class DownloadsPane extends AnchorPane {
                 System.out.println(e.getMessage());
             }
         };
-    }
-
-    protected String getVideoDuration(javafx.util.Duration total) {
-        if (total != javafx.util.Duration.UNKNOWN) {
-            BigDecimal mills = new BigDecimal(String.valueOf(total.toMillis()));
-
-            BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
-
-            int hours = totalSeconds.intValue() / (60*60);
-            String h = "";
-            if (hours != 0) h = hours+":";
-
-            BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
-            BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
-
-            long sec = Math.round(seconds.doubleValue());
-            long min = Math.round(minutes.doubleValue());
-
-            return h+String.format("%2s:%2s", min, sec);
-        }
-        return "00:00";
     }
 
     private String getFileName(String name) {

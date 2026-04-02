@@ -7,6 +7,7 @@ import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.tabs.PornTabPane;
 import com.plovdev.pornviewer.gui.toast.Toast;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
+import com.plovdev.pornviewer.gui.video.DurationUtils;
 import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
 import com.plovdev.pornviewer.httpquering.Resourcer;
@@ -93,13 +94,15 @@ public class MainMenu extends Application {
             int id = Integer.parseInt(link.getParams().get("id"));
             if (action.equals("add")) {
                 VideoInfo info = parser.parseVideo(resourcer.buildVideoUrlFromId(id));
-                FavoriteVideo video = new FavoriteVideo(id, info.getTitle(), info.getUrl(), info.getPic(), info.getDuration(), info.getViews(), info.getRating(), info, true, null);
+                String duration = DurationUtils.formatDurationToString(info.getDuration());
+                FavoriteVideo video = new FavoriteVideo(id, info.getTitle(), info.getUrl(), info.getPic(), duration, info.getViews(), info.getRating(), info, true, null);
                 FavoriteVideos.add(video);
                 FavoriteListener.notifyListeners(video);
                 Platform.runLater(() -> new Toast(stage, "Добавлено в избранное").show());
             } else if (action.equals("remove")) {
                 VideoInfo info = parser.parseVideo(resourcer.buildVideoUrlFromId(id));
-                FavoriteVideo video = new FavoriteVideo(id, info.getTitle(), info.getUrl(), info.getPic(), info.getDuration(), info.getViews(), info.getRating(), info, false, null);
+                String duration = DurationUtils.formatDurationToString(info.getDuration());
+                FavoriteVideo video = new FavoriteVideo(id, info.getTitle(), info.getUrl(), info.getPic(), duration, info.getViews(), info.getRating(), info, false, null);
                 FavoriteVideos.remove(String.valueOf(id));
                 FavoriteListener.notifyListeners(video);
                 Platform.runLater(() -> new Toast(stage, "Удалено из избранного").show());

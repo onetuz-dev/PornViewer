@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+chown root:wheel "/Applications"
+chmod a+rX "/Applications"
+chmod +r "/Applications/PornViewer.app/Contents/app/"*.jar
+
+exit 0

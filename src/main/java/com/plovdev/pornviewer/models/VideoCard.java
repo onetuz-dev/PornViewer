@@ -15,15 +15,17 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
 
 public class VideoCard extends PornCard {
+    private static final Logger log = LoggerFactory.getLogger(VideoCard.class);
     protected String duration;
     protected int views;
     protected String rating;
@@ -58,6 +60,7 @@ public class VideoCard extends PornCard {
     public VideoCard(int id, String title, String url, String pic) {
         super(id, title, url, pic);
     }
+
     public VideoCard() {
 
     }
@@ -135,8 +138,7 @@ public class VideoCard extends PornCard {
             player.show();
         });
         titleLabel.getStyleClass().add("video-title");
-        titleLabel.setMaxWidth(300);
-        titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(350);
         Label dur = new Label(duration);
         dur.getStyleClass().add("marker");
 
@@ -218,16 +220,21 @@ public class VideoCard extends PornCard {
 
     protected MenuItem getLoader(String qual) {
         MenuItem item = new MenuItem(qual);
-        item.setOnAction(e -> {
-            Thread thread = new Thread(() -> {
-                Media media = new Media(info.getUrls().get(qual));
+        item.setOnAction(e -> new Thread(() -> {
+            String title = getTitle();
+            String url = info.getUrls().get(qual);
+
+            try {
                 byte[] preview = handler.getBytes(getPic());
-                handler.downloadPorn(info.getUrls().get(qual), getTitle(), new VideoMetadata(getTitle(), "video/mp4", media.getDuration(), preview == null ? new byte[0] : preview));
-            });
-            thread.start();
-        });
+                VideoMetadata meta = new VideoMetadata(title, "video/mp4", info.getDuration(), preview == null ? new byte[0] : preview);
+                handler.downloadPorn(url, title, meta);
+            } catch (Exception ex) {
+                log.error("Loading error: ", ex);
+            }
+        }).start());
         return item;
     }
+
 
     public String getVideoDuration(javafx.util.Duration total) {
         if (total != javafx.util.Duration.UNKNOWN) {
@@ -235,9 +242,9 @@ public class VideoCard extends PornCard {
 
             BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
 
-            int hours = totalSeconds.intValue() / (60*60);
+            int hours = totalSeconds.intValue() / (60 * 60);
             String h = "";
-            if (hours != 0) h = hours+":";
+            if (hours != 0) h = hours + ":";
 
             BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
             BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
@@ -245,7 +252,7 @@ public class VideoCard extends PornCard {
             long sec = Math.round(seconds.doubleValue());
             long min = Math.round(minutes.doubleValue());
 
-            return h+String.format("%2s:%2s", min, sec);
+            return h + String.format("%2s:%2s", min, sec);
         }
         return "00:00";
     }

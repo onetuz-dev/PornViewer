@@ -1,11 +1,11 @@
 package com.plovdev.pornviewer.models;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 public class VideoInfo {
     private List<Comment> comments;
-
     private int views;
     private String rating;
     private Map<String, String> urls;
@@ -13,7 +13,7 @@ public class VideoInfo {
     private Map<String, String> tags;
     private Map<String, String> models;
     private Map<String, String> categories;
-    private String duration;
+    private Duration duration;
     private String pic;
     private int id;
     private String description;
@@ -32,11 +32,11 @@ public class VideoInfo {
         this.pic = pic;
     }
 
-    public String getDuration() {
+    public Duration getDuration() {
         return duration;
     }
 
-    public void setDuration(String duration) {
+    public void setDuration(Duration duration) {
         this.duration = duration;
     }
 

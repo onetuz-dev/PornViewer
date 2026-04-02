@@ -5,15 +5,22 @@ import com.google.gson.JsonObject;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
-import javafx.util.Duration;
+import javafx.scene.image.Image;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
 
 public class VideoMetadata {
     private static final Gson gson = new Gson();
     private static final CipherManager cm = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     private String signature;
+    private long videoSize;
     private int metadataSize;
 
     private int jsonSize;
@@ -21,6 +28,10 @@ public class VideoMetadata {
 
     //NO-WRITES
     private String originalName;
+    private String description;
+    private String url;
+    private List<Timecode> timecodes;
+    private List<String> tags;
     private String mimeType;
     private Duration totalDuration;
     //NO-WRITES
@@ -28,8 +39,9 @@ public class VideoMetadata {
     private int previewSize;
     private byte[] preview;
 
-    public VideoMetadata(String signature, int metadataSize, int jsonSize, String originalJson, String originalName, String mimeType, Duration totalDuration, int previewSize, byte[] preview) {
+    public VideoMetadata(String signature, long videoSize, int metadataSize, int jsonSize, String originalJson, String originalName, String mimeType, Duration totalDuration, int previewSize, byte[] preview) {
         this.signature = signature;
+        this.videoSize = videoSize;
         this.metadataSize = metadataSize;
         this.jsonSize = jsonSize;
         this.originalJson = originalJson;
@@ -47,7 +59,7 @@ public class VideoMetadata {
         JsonObject jsonMetadata = gson.fromJson(json, JsonObject.class);
         String originalName = jsonMetadata.get("name").getAsString();
         String mimeType = jsonMetadata.get("mime").getAsString();
-        Duration totalDuration = Duration.millis(jsonMetadata.get("duration").getAsDouble());
+        Duration totalDuration = Duration.parse(jsonMetadata.get("duration").getAsString());
 
         this.signature = FileUtils.PORN_VIEWER_SIGN;
         this.metadataSize = metaSize;
@@ -83,6 +95,14 @@ public class VideoMetadata {
     }
 
     public VideoMetadata() {
+    }
+
+    public long getVideoSize() {
+        return videoSize;
+    }
+
+    public void setVideoSize(long videoSize) {
+        this.videoSize = videoSize;
     }
 
     public String getOriginalName() {
@@ -121,7 +141,7 @@ public class VideoMetadata {
         return metadataSize;
     }
     public int getTotalMetaSize() {
-        return getMetadataSize() + getSignature().length();
+        return getMetadataSize() + 40;
     }
 
     public void setMetadataSize(int metadataSize) {
@@ -160,16 +180,56 @@ public class VideoMetadata {
         this.mimeType = mimeType;
     }
 
+    public Image getJavaFxPreview() {
+        return new Image(new ByteArrayInputStream(preview));
+    }
+    public BufferedImage getJavaPreview() {
+        try {
+            return ImageIO.read(new ByteArrayInputStream(preview));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class Timecode {
+        private Duration time;
+        private String text;
+
+        public Timecode(Duration time, String text) {
+            this.time = time;
+            this.text = text;
+        }
+
+        public Duration getTime() {
+            return time;
+        }
+
+        public void setTime(Duration time) {
+            this.time = time;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public void setText(String text) {
+            this.text = text;
+        }
+    }
+
     @Override
     public String toString() {
-        return "VideoMetadata{" +
-                "signature='" + signature + '\'' +
-                ", metadataSize=" + metadataSize +
-                ", jsonSize=" + jsonSize +
-                ", originalName='" + originalName + '\'' +
-                ", mimeType='" + mimeType + '\'' +
-                ", totalDuration=" + totalDuration +
-                ", previewSize=" + previewSize +
-                '}';
+        return "VideoMetadata {" +
+                "\nsignature='" + signature + '\'' +
+                ",\nvideoSize=" + videoSize +
+                ",\nmetadataSize=" + metadataSize +
+                ",\njsonSize=" + jsonSize +
+                ",\noriginalJson='" + originalJson + '\'' +
+                ",\noriginalName='" + originalName + '\'' +
+                ",\nmimeType='" + mimeType + '\'' +
+                ",\ntotalDuration=" + totalDuration +
+                ",\npreviewSize=" + previewSize +
+                "\n}";
+
     }
 }

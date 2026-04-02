@@ -76,8 +76,9 @@ public class Toast {
     }
 
     public void show() {
-        // 1. Показываем и запускаем появление (в главном потоке)
         popup.show(stage);
+        popup.setX(stage.getX() + stage.getWidth() / 2 - pane.getWidth() / 2);
+        popup.setY(stage.getY() + stage.getHeight() * 0.8);
 
         if (isPlayAnim) {
             FadeTransition fadeIn = new FadeTransition(Duration.millis(animDelay), pane);
@@ -85,7 +86,7 @@ public class Toast {
             fadeIn.setToValue(1.0);
             fadeIn.play();
         }
-        new Thread(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 Thread.sleep(toastDelay);
                 Platform.runLater(() -> {
@@ -102,7 +103,7 @@ public class Toast {
             } catch (InterruptedException e) {
                 log.error("Toast closing error: {}", e.getMessage());
             }
-        }).start();
+        });
     }
 
 }

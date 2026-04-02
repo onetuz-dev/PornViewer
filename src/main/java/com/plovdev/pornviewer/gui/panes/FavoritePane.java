@@ -6,13 +6,14 @@ import com.plovdev.pornviewer.databases.UserPreferences;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
+import com.plovdev.pornviewer.gui.video.DurationUtils;
 import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.httpquering.PornVideoAdapter;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.FavoriteVideo;
 import com.plovdev.pornviewer.models.FavoriteVideoInfo;
 import com.plovdev.pornviewer.models.VideoInfo;
-import com.plovdev.pornviewer.utility.JSONSerializer;
+import com.plovdev.pornviewer.utility.json.JSONSerializer;
 import com.plovdev.pornviewer.utility.LauncherHelper;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -24,8 +25,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -348,20 +348,23 @@ public class FavoritePane extends AnchorPane {
         PornParser parser = adapter.getParser();
         List<FavoriteVideo> toLoad = new ArrayList<>(currentList);
 
-        item.setOnAction(e -> {
+        item.setOnAction(e ->  {
             for (FavoriteVideo video : toLoad) {
                 executor.execute(() -> {
+                    VideoInfo info = video.getInfo();
+                    if (info == null) {
+                        info = parser.parseVideo(video.getUrl());
+                    }
+
+                    Duration duration = Duration.millis(info.getDuration().toMillis());
+                    String title = info.getTitle();
+                    String url = info.getUrls().get(qual);
                     try {
-                        VideoInfo info = video.getInfo();
-                        if (info == null) {
-                            info = parser.parseVideo(video.getUrl());
-                        }
-                        MediaPlayer player = new MediaPlayer(new Media(info.getUrls().get(qual)));
-                        Thread.sleep(500);
-                        byte[] preview = handler.getBytes(video.getPic());
-                        handler.downloadPorn(info.getUrls().get(qual), video.getTitle(), new VideoMetadata(video.getTitle(), "video/mp4", player.getTotalDuration(), preview == null ? new byte[0] : preview));
+                        byte[] preview = handler.getBytes(info.getPic());
+                        VideoMetadata meta = new VideoMetadata(title, "video/mp4", DurationUtils.ofJavaFxDuraion(duration), preview == null ? new byte[0] : preview);
+                        handler.downloadPorn(url, title, meta);
                     } catch (Exception ex) {
-                        log.error("Porn loading error: ", ex);
+                        log.error("Loading error: ", ex);
                     }
                 });
             }

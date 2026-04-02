@@ -1,6 +1,6 @@
 package com.plovdev.pornviewer.models;
 
-import com.plovdev.pornviewer.utility.JSONSerializer;
+import com.plovdev.pornviewer.utility.json.JSONSerializer;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;

@@ -18,43 +18,61 @@ import java.util.Map;
 public class ContentUtils {
     private static final Logger log = LoggerFactory.getLogger(ContentUtils.class);
     private static final VideoCipherrer VD = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
-    private static final int BUFFER_SIZE = 131072;
+    private static final int BUFFER_SIZE = 8192;
+    private static final int HEADER_SIZE = 40; // 32 байта MD5 + 8 байт videoSize
 
     public static void sendFileRange(HttpExchange exchange, Chunk chunk, File file, boolean needDecrypt) throws Exception {
         long start = chunk.getStart();
         long end = chunk.getEnd();
-        long fileSize = file.length();
-        long contentLength = chunk.length();
 
-        log.info("Sending range {}-{}, needDecrypt: {}", start, end, needDecrypt);
-
-
+        long metadataSize = 0;
+        VideoMetadata metadata = null;
         try {
-            VideoMetadata metadata = VideoReader.readMetadata(new FileInputStream(file));
-            int metaSize = metadata.getTotalMetaSize();
-            if (contentLength > 100) {
-                contentLength -= metaSize;
-            }
-            if (start == 0) {
-                start = metaSize;
-            }
+            metadata = VideoReader.readMetadata(file);
         } catch (Exception e) {
-            log.error("Error to skip metadata bytes: ", e);
+            log.debug("No metadata found");
         }
-        log.info("Start: {}, length: {}", start, contentLength);
+
+        // 2. Видео начинается после 40-байтового заголовка
+        long videoStart = HEADER_SIZE;
+        long videoLength = (metadata != null) ? metadata.getVideoSize() : (file.length() - HEADER_SIZE);
+
+        if (end >= videoLength) {
+            end = videoLength - 1;
+        }
+
+        // 3. Корректируем позиции для отправки клиенту
+        long realStart = videoStart + start;
+        long realEnd = videoStart + end;
+
+        log.info("Chunk requesting: start: {}, end: {}, realStart: {}, realEnd: {}, videoStart: {}, videoLength: {}, metadataSize: {}", start, end, realStart, realEnd, videoStart, videoLength, metadataSize);
+        if (realStart >= file.length() || realStart >= (videoStart + videoLength)) {
+            exchange.sendResponseHeaders(416, -1);
+            return;
+        }
+
+        if (realEnd >= file.length()) {
+            realEnd = file.length() - 1;
+        }
+
+        long contentLength = realEnd - realStart + 1;
+
+        log.info("Sending range: client {}-{}, real {}-{}, videoLength={}, metadataSize={}",
+                start, end, realStart, realEnd, videoLength, metadataSize);
 
         exchange.getResponseHeaders().set("Content-Type", "video/mp4");
         exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
         exchange.getResponseHeaders().set("Connection", "keep-alive");
         exchange.getResponseHeaders().set("Keep-Alive", "timeout=600");
-        exchange.getResponseHeaders().set("Content-Range", "bytes " + chunk.getStart() + "-" + end + "/" + fileSize);
+        exchange.getResponseHeaders().set("Content-Range",
+                String.format("bytes %d-%d/%d", start, end, videoLength));
         exchange.sendResponseHeaders(206, contentLength);
 
         try (OutputStream os = exchange.getResponseBody()) {
             if (needDecrypt) {
-                sendDecryptedRange(file, start, contentLength, os);
+                sendDecryptedRange(file, realStart, contentLength, os);
             } else {
-                sendPlainRange(file, start, contentLength, os);
+                sendPlainRange(file, realStart, contentLength, os);
             }
         }
     }
@@ -74,57 +92,53 @@ public class ContentUtils {
         }
     }
 
-    private static void sendDecryptedRange(File file, long start, long length, OutputStream os) throws Exception {
+    private static void sendDecryptedRange(File file, long startInFile, long length, OutputStream os) throws Exception {
+        // ВАЖНО: Вычисляем позицию ОТНОСИТЕЛЬНО начала контента (после 40 байт)
+        long relativePos = startInFile - HEADER_SIZE;
+
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
-            int skip = (int) (start % 16);
-            long alignedStart = start - skip;
-            raf.seek(alignedStart);
+            int skip = (int) (relativePos % 16);
+            long alignedRelativeStart = relativePos - skip;
 
-            Cipher cipher = VD.createCipher(Cipher.DECRYPT_MODE, alignedStart);
+            // Прыгаем в файле: 40 (заголовок) + выровненный старт контента
+            raf.seek(HEADER_SIZE + alignedRelativeStart);
 
-            // Буфер 128 КБ — золотая середина
-            byte[] buffer = new byte[128 * 1024];
-            long totalSent = 0;
-            long totalToProcess = length + skip;
-            long processedCount = 0;
+            // Инициализируем шифр с ПРАВИЛЬНОЙ позиции (0, 16, 32...)
+            // Теперь для 40-го байта файла позиция в шифре будет 0.
+            Cipher cipher = VD.createCipher(Cipher.DECRYPT_MODE, alignedRelativeStart);
 
-            while (processedCount < totalToProcess) {
-                // Считаем, сколько байт прочитать в этой итерации
-                int toRead = (int) Math.min(buffer.length, totalToProcess - processedCount);
+            byte[] buffer = new byte[8192];
+            long totalToRead = length + skip;
+            long processed = 0;
+            boolean firstChunk = true;
+
+            while (processed < totalToRead) {
+                int toRead = (int) Math.min(buffer.length, totalToRead - processed);
                 int read = raf.read(buffer, 0, toRead);
                 if (read == -1) break;
 
-                // Расшифровываем только прочитанный кусок
-                byte[] decrypted = cipher.update(buffer, 0, read);
-
-                if (decrypted != null && decrypted.length > 0) {
+                byte[] out;
+                if (processed + read == totalToRead) {
+                    out = cipher.doFinal(buffer, 0, read);
+                } else {
+                    out = cipher.update(buffer, 0, read);
+                }
+                if (out != null && out.length > 0) {
                     int offset = 0;
-                    int lenToWrite = decrypted.length;
+                    int len = out.length;
 
-                    // Если это самое начало, отрезаем skip
-                    if (totalSent == 0 && skip > 0) {
+                    if (firstChunk) {
                         offset = skip;
-                        lenToWrite -= skip;
+                        len -= skip;
+                        firstChunk = false;
                     }
 
-                    // Пишем в поток. Если клиент отключился — ловим ошибку и выходим
-                    try {
-                        os.write(decrypted, offset, lenToWrite);
-                        totalSent += lenToWrite;
-                    } catch (IOException e) {
-                        log.info("Stream interrupted: Client disconnected.");
-                        return;
+                    if (len > 0) {
+                        os.write(out, offset, len);
                     }
                 }
-                processedCount += read;
+                processed += read;
             }
-
-            // Финализируем (для CTR NoPadding это формальность, но нужна для очистки ресурсов Cipher)
-            byte[] finalBlock = cipher.doFinal();
-            if (finalBlock != null && finalBlock.length > 0 && totalSent < length) {
-                os.write(finalBlock);
-            }
-
             os.flush();
         }
     }
@@ -147,7 +161,6 @@ public class ContentUtils {
             throw new FileNotFoundException("File not found: " + decodedPath);
         }
 
-        // Security check - prevent directory traversal
         String canonicalPath = file.getCanonicalPath();
         String basePath = new File(FileUtils.getPvDownloadsPath().toString()).getCanonicalPath();
 

@@ -111,9 +111,12 @@ public class PBPornHandler {
         log.info("Write file to: {}", fileOut);
 
         VideoCipherrer cipher = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
+        long videoSize = getVideoSize(url);
+        metadata.setVideoSize(videoSize);
+        VideoWriter writer = new VideoWriter(metadata);
 
         try (FileOutputStream file = new FileOutputStream(fileOut)) {
-            VideoWriter.writeMetadataToStream(file, metadata);
+            writer.writeMetadataHeaderToStream(file);
 
             // HTTP запрос
             HttpRequest request = HttpRequest.newBuilder()
@@ -129,7 +132,6 @@ public class PBPornHandler {
                 int read;
                 byte[] buffer = new byte[131072];
 
-                long videoSize = getVideoSize(url);
                 FileDownloadingListener.notifyStartsListeners(videoSize);
 
                 while ((read = in.read(buffer)) != -1) {
@@ -142,11 +144,11 @@ public class PBPornHandler {
                 }
                 log.info("Download completed. Total bytes: {}, Encrypted file: {}", totalRead, fileOut);
             }
+            writer.writeMetadataToStream(file);
         } catch (Exception e) {
             log.error("Error loading file: ", e);
             FileDownloadingListener.notifyErrorListeners(e);
         }
-
         FileDownloadingListener.notifyEndListeners(fileOut);
     }
 

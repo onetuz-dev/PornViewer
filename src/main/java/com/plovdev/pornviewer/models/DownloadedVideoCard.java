@@ -106,6 +106,8 @@ public class DownloadedVideoCard extends VideoCard {
             playerPane.show();
         });
         title.getStyleClass().add("video-title-download");
+        title.setMaxWidth(800);
+        title.setWrapText(true);
         AnchorPane.setTopAnchor(title,10.0);
         AnchorPane.setLeftAnchor(title, 120.0);
         anchorPane.getChildren().add(title);
