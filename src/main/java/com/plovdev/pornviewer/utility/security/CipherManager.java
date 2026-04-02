@@ -8,33 +8,31 @@ import org.slf4j.LoggerFactory;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
 
 public class CipherManager {
-    private final Logger logger = LoggerFactory.getLogger(CipherManager.class);
-    private static final String ALG = "AES/GCM/NoPadding";
+    private final static Logger logger = LoggerFactory.getLogger(CipherManager.class);
+    private static final String ALG = "AES/CBC/PKCS5Padding";
+    private static final String ALG_NP = "AES/CTR/NoPadding";
     private final SecretKey key;
-    private final GCMParameterSpec gcmSpec;
+    private final IvParameterSpec spec;
 
     public CipherManager(String password) {
         try {
+            // Генерируем ключ из пароля
             key = generateKeyFromPassword(password);
 
-            // Генерируем IV из пароля
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes());
-            byte[] gcmIv = Arrays.copyOfRange(hash, 0, 12);
-            gcmSpec = new GCMParameterSpec(128, gcmIv);
+            // Фиксированный IV на основе пароля (или генерируем и сохраняем)
+            spec = generateIvFromPassword(password);
+
         } catch (Exception e) {
             logger.error("Ошибка инициализации: {}", e.getMessage());
             throw new RuntimeException("Failed to initialize security service", e);
@@ -58,7 +56,7 @@ public class CipherManager {
     }
 
     private SecretKey generateKeyFromPassword(String password) throws Exception {
-        byte[] salt = "fixed-salt".getBytes();
+        byte[] salt = "fixed-salt".getBytes(); // или генерируйте случайный и сохраняйте
         int iterations = 65536;
         int keyLength = 256;
 
@@ -67,10 +65,18 @@ public class CipherManager {
         return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
     }
 
+    private IvParameterSpec generateIvFromPassword(String password) throws Exception {
+        // Генерируем IV на основе пароля
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(password.getBytes());
+        byte[] iv = Arrays.copyOfRange(hash, 0, 16);
+        return new IvParameterSpec(iv);
+    }
+
     public byte[] encrypt(byte[] to) {
         try {
-            Cipher cipher = Cipher.getInstance(ALG);
-            cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
+            Cipher cipher = Cipher.getInstance(ALG_NP);
+            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
             return cipher.doFinal(to);
         } catch (Exception e) {
             logger.error("Произошла ошибка шифрования байтов: {}", e.getMessage());
@@ -81,11 +87,12 @@ public class CipherManager {
     public String encrypt(String to) {
         try {
             Cipher cipher = Cipher.getInstance(ALG);
-            cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
-            byte[] encrypted = cipher.doFinal(to.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(encrypted);
+            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+
+            byte[] encrypted = cipher.doFinal(to.getBytes());
+            return Base64.getUrlEncoder().encodeToString(encrypted);
         } catch (Exception e) {
-            logger.error("Произошла ошибка шифрования строки: {}", e.getMessage());
+            logger.error("Произошла ошибка шифрования коючей: {}", e.getMessage());
         }
         return to;
     }
@@ -93,42 +100,26 @@ public class CipherManager {
     public String decrypt(String from) {
         try {
             Cipher cipher = Cipher.getInstance(ALG);
-            cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+            cipher.init(Cipher.DECRYPT_MODE, key, spec);
+
             byte[] decoded = Base64.getUrlDecoder().decode(from);
             byte[] decrypted = cipher.doFinal(decoded);
-            return new String(decrypted, StandardCharsets.UTF_8);
+
+            return new String(decrypted);
         } catch (Exception e) {
-            logger.error("Произошла ошибка расшифровки строки: {}", e.getMessage());
+            logger.error("Произошла ошибка расшифровки ключей: {}", e.getMessage());
         }
         return from;
     }
 
     public byte[] decrypt(byte[] from) {
         try {
-            Cipher cipher = Cipher.getInstance(ALG);
-            cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec);
+            Cipher cipher = Cipher.getInstance(ALG_NP);
+            cipher.init(Cipher.DECRYPT_MODE, key, spec);
             return cipher.doFinal(from);
         } catch (Exception e) {
             logger.error("Произошла ошибка расшифровки байтов: {}", e.getMessage());
         }
         return from;
-    }
-
-    public static String md5(String text) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(text.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : digest) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("MD5 algorithm not available", e);
-        }
     }
 }
