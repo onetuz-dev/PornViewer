@@ -1,5 +1,7 @@
 package com.plovdev.pornviewer;
 
+import com.github.javakeyring.Keyring;
+import com.github.javakeyring.PasswordAccessException;
 import com.plovdev.pornviewer.events.listeners.ServerEventListenerAdapter;
 import com.plovdev.pornviewer.gui.MainMenu;
 import com.plovdev.pornviewer.server.SafeHttpServer;
@@ -7,6 +9,7 @@ import com.plovdev.pornviewer.utility.LauncherHelper;
 import com.plovdev.pornviewer.utility.deeplink.DeepLinker;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
+import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.application.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +42,8 @@ public class Launcher {
             log.error("Error setup image icon: ", e);
         }
         try {
+            initPassword();
+
             Path downloadsPath = FileUtils.getPvDownloadsPath();
             if (!Files.exists(downloadsPath)) {
                 Files.createDirectories(downloadsPath);
@@ -58,6 +63,7 @@ public class Launcher {
         DeepLinker.init(launcherHelper);
         Application.launch(MainMenu.class, args);
     }
+
     private static void startServer(String[] args) {
         URI deeplink = getDeepLink(args);
 
@@ -83,6 +89,7 @@ public class Launcher {
         });
         server.startServer();
     }
+
     private static URI getDeepLink(String[] args) {
         for (String lnk : args) {
             if (lnk.startsWith("pv://") || lnk.startsWith("pornviewer://")) {
@@ -90,5 +97,29 @@ public class Launcher {
             }
         }
         return null;
+    }
+
+    private static void initPassword() {
+        try (Keyring keyring = Keyring.create()) {
+            String service = FileUtils.PORN_VIEWER_SIGN;
+            String account = FileUtils.PORN_VIEWER_SIGN;
+            String retrievedPassword = null;
+
+            try {
+                retrievedPassword = keyring.getPassword(service, account);
+            } catch (PasswordAccessException e) {
+                log.info("Password not found in keychain, creating new one...");
+            }
+
+            if (retrievedPassword == null) {
+                String newPassword = CipherManager.generateRandomPassword();
+                keyring.setPassword(service, account, newPassword);
+                log.info("New password generated and saved to keychain");
+                System.gc();
+            }
+        } catch (Exception e) {
+            log.error("Failed to access keychain", e);
+            throw new RuntimeException("Keychain error", e);
+        }
     }
 }

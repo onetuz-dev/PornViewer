@@ -2,9 +2,8 @@ package com.plovdev.pornviewer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.plovdev.pornviewer.databases.SecureDB;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
@@ -18,24 +17,62 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Duration;
 
 public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
-    private static final VideoCipherrer cipher = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
-    private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
+    private static final VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
 
     public static void main(String[] args) throws Exception {
-        PBPornHandler handler = new PBPornHandler();
-        String body = handler.requestPorn("https://vps402.strip2.co/");
-        Files.writeString(Path.of("stripe/main.html"), body);
+        //decryptDatabaseViaAttach(FileUtils.getPVJDBCPathProtocol(), EnvReader.getEnv("VIDEO_PASSWORD"), "plain.db");
+        //encryptDatabase(CipherManager.getPassword());
     }
 
-    public static void encryptDatabase(String dbPath, String newPassword) {
+    public static void decryptDatabaseViaAttach(String encryptedDbPath, String password, String decryptedDbPath) {
+        try (Connection conn = SecureDB.initCipherer()) {
+            // Открываем зашифрованную БД
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("PRAGMA key = '" + escapeString(password) + "'");
+
+                // Создаём новую незашифрованную БД и прикрепляем её
+                stmt.execute("ATTACH DATABASE '" + decryptedDbPath + "' AS plain");
+
+                // Копируем всё содержимое
+                ResultSet tables = stmt.executeQuery(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+                );
+
+                while (tables.next()) {
+                    String tableName = tables.getString("name");
+                    stmt.execute("CREATE TABLE plain." + tableName + " AS SELECT * FROM " + tableName);
+                }
+                tables.close();
+
+                // Копируем индексы, триггеры и т.д.
+                ResultSet indexes = stmt.executeQuery(
+                        "SELECT sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL"
+                );
+                while (indexes.next()) {
+                    String indexSQL = indexes.getString("sql");
+                    if (indexSQL != null) {
+                        stmt.execute(indexSQL.replace("ON ", "ON plain."));
+                    }
+                }
+                indexes.close();
+
+                stmt.execute("DETACH DATABASE plain");
+                System.out.println("✅ База успешно расшифрована");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка: " + e.getMessage());
+        }
+    }
+
+    public static void encryptDatabase(String newPassword) {
         try {
-            Connection conn = DriverManager.getConnection(dbPath);
+            Connection conn = SecureDB.initCipherer();
             try (Statement stmt = conn.createStatement()) {
                 stmt.execute("PRAGMA rekey = '" + escapeString(newPassword) + "'");
                 System.out.println("✅ База успешно зашифрована");

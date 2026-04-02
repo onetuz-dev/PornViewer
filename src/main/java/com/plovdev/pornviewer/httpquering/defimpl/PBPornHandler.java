@@ -4,7 +4,6 @@ import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
@@ -14,6 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.plovdev.safeio.degest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,6 @@ import java.time.Duration;
 
 public class PBPornHandler {
     private static final Logger log = LoggerFactory.getLogger(PBPornHandler.class);
-    private static final CipherManager CM = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     private final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(20))
@@ -106,11 +105,11 @@ public class PBPornHandler {
     public void downloadPorn(String url, String filename, VideoMetadata metadata) {
         log.info("Start loading file: {}", filename);
         EventListener.notifyListeners("START_DWONLOAD:" + filename);
-        String encryptedFileName = CM.encrypt(filename) + FileUtils.PORN_VIEWER_SIGN;
+        String encryptedFileName = DigestUtils.sha256(filename);
         String fileOut = FileUtils.getPvDownloadsPath() + "/" + encryptedFileName;
         log.info("Write file to: {}", fileOut);
 
-        VideoCipherrer cipher = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
+        VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
         long videoSize = getVideoSize(url);
         metadata.setVideoSize(videoSize);
         VideoWriter writer = new VideoWriter(metadata);

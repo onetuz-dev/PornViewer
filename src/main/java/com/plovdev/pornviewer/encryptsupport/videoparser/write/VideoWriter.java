@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.plovdev.pornviewer.encryptsupport.LoadersUtils;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 
 public record VideoWriter(VideoMetadata metadata) {
     private static final Gson gson = new Gson();
-    private static final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
+    private static final CipherManager cipherManager = new CipherManager(CipherManager.getPassword());
     private static final int VIDEO_DATA_OFFSET = 40;
     private static final Logger log = LoggerFactory.getLogger(VideoWriter.class);
 

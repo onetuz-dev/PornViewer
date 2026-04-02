@@ -2,7 +2,6 @@ package com.plovdev.pornviewer.encryptsupport.videoparser;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.scene.image.Image;
@@ -17,7 +16,7 @@ import java.util.List;
 
 public class VideoMetadata {
     private static final Gson gson = new Gson();
-    private static final CipherManager cm = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
+    private static final CipherManager cm = new CipherManager(CipherManager.getPassword());
 
     private String signature;
     private long videoSize;
@@ -54,7 +53,7 @@ public class VideoMetadata {
 
     public VideoMetadata(String json, byte[] preview) {
         byte[] bytes = cm.encrypt(json.getBytes(StandardCharsets.UTF_8));
-        int metaSize = bytes.length + preview.length + 4;
+        int metaSize = bytes.length + preview.length + 4; // +4 - [metadata size] block
 
         JsonObject jsonMetadata = gson.fromJson(json, JsonObject.class);
         String originalName = jsonMetadata.get("name").getAsString();

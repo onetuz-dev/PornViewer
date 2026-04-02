@@ -11,9 +11,7 @@ import com.plovdev.pornviewer.models.DownloadingVideoCard;
 import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.utility.LauncherHelper;
 import com.plovdev.pornviewer.utility.constants.EntryEventTypes;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
-import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -51,7 +49,6 @@ public class DownloadsPane extends AnchorPane {
     private final ObservableList<DownloadedVideoCard> originNots = FXCollections.observableArrayList();
     private boolean isSelf = false;
     private final DateTimeFormatter createFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
-    private final CipherManager cipherManager = new CipherManager(EnvReader.getEnv("VIDEO_PASSWORD"));
 
     public DownloadsPane() {
         BorderPane root = new BorderPane();
@@ -167,7 +164,7 @@ public class DownloadsPane extends AnchorPane {
                         FileTime time = attributes.creationTime();
                         LocalDateTime dateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneId.systemDefault());
                         card.setDate(dateTime.format(createFormatter));
-                        card.setTitle(getFileName(p.getFileName().toString()));
+                        card.setTitle(p.getFileName().toString());
                         log.info("Title: {}, file: {}", card.getTitle(), p.getFileName().toString());
                         card.setPath(file.toURI().toString());
 
@@ -213,12 +210,5 @@ public class DownloadsPane extends AnchorPane {
                 System.out.println(e.getMessage());
             }
         };
-    }
-
-    private String getFileName(String name) {
-        if (name.endsWith(FileUtils.PORN_VIEWER_SIGN)) {
-            name = cipherManager.decrypt(name.replace(FileUtils.PORN_VIEWER_SIGN, "")) + "#D";
-        }
-        return name;
     }
 }

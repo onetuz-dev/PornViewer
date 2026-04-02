@@ -2,8 +2,8 @@ package com.plovdev.pornviewer.server;
 
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
-import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.files.FileUtils;
+import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import com.sun.net.httpserver.HttpExchange;
 import org.slf4j.Logger;
@@ -17,9 +17,9 @@ import java.util.Map;
 
 public class ContentUtils {
     private static final Logger log = LoggerFactory.getLogger(ContentUtils.class);
-    private static final VideoCipherrer VD = new VideoCipherrer(EnvReader.getEnv("VIDEO_PASSWORD"));
+    private static final VideoCipherrer VD = new VideoCipherrer(CipherManager.getPassword());
     private static final int BUFFER_SIZE = 8192;
-    private static final int HEADER_SIZE = 40; // 32 байта MD5 + 8 байт videoSize
+    private static final int HEADER_SIZE = 40;
 
     public static void sendFileRange(HttpExchange exchange, Chunk chunk, File file, boolean needDecrypt) throws Exception {
         long start = chunk.getStart();
