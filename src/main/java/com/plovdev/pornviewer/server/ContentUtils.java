@@ -173,6 +173,6 @@ public class ContentUtils {
     }
 
     public static String buildFilePath(String name) {
-        return FileUtils.getPvDownloadsPath() + name;
+        return FileUtils.getPvDownloadsPath() + (File.separatorChar + name);
     }
 }

@@ -8,7 +8,6 @@ import com.plovdev.pornviewer.server.SafeHttpServer;
 import com.plovdev.pornviewer.utility.LauncherHelper;
 import com.plovdev.pornviewer.utility.deeplink.DeepLinker;
 import com.plovdev.pornviewer.utility.files.FileUtils;
-import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.application.Application;
 import org.slf4j.Logger;
@@ -59,7 +58,7 @@ public class Launcher {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        log.info("Launching pv... TOKEN: {}", ServerPaths.getInstance().getToken());
+        log.info("Launching pv...");
         DeepLinker.init(launcherHelper);
         Application.launch(MainMenu.class, args);
     }

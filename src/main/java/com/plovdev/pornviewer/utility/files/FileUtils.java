@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.utility.files;
 
+import com.plovdev.pornviewer.encryptsupport.DigestUtils;
 import org.jetbrains.annotations.NotNull;
-import org.plovdev.safeio.degest.DigestUtils;
 
 import java.nio.file.Path;
 

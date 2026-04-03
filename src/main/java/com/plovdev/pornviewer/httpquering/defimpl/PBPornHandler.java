@@ -1,5 +1,6 @@
 package com.plovdev.pornviewer.httpquering.defimpl;
 
+import com.plovdev.pornviewer.encryptsupport.DigestUtils;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.events.listeners.EventListener;
@@ -13,7 +14,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.plovdev.safeio.degest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
