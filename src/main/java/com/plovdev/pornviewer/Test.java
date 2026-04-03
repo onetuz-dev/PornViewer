@@ -4,15 +4,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.plovdev.pornviewer.databases.SecureDB;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
+import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -26,8 +25,8 @@ public class Test {
     private static final VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
 
     public static void main(String[] args) throws Exception {
-        //decryptDatabaseViaAttach(FileUtils.getPVJDBCPathProtocol(), EnvReader.getEnv("VIDEO_PASSWORD"), "plain.db");
-        //encryptDatabase(CipherManager.getPassword());
+        VideoMetadata metadata = VideoReader.readMetadata(new File(FileUtils.getPvDownloadsPath() + "/c3b3355fcb0ee92989f742b161497b2dd40df00448eb684e625011342711035a"));
+        System.out.println(metadata);
     }
 
     public static void decryptDatabaseViaAttach(String encryptedDbPath, String password, String decryptedDbPath) {

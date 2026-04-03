@@ -30,7 +30,7 @@ public class VideoReader {
             }
             String signature = new String(sign);
             if (!signature.equals(FileUtils.PORN_VIEWER_SIGN)) {
-                throw new IOException("Not a pv-encrypted video file!");
+                throw new IOException("Not a pv-encrypted video file! " + signature);
             }
 
             byte[] totalVideoSizeBytes = new byte[8];

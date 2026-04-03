@@ -94,7 +94,8 @@ public class SafeHttpHandler implements HttpHandler {
         try {
             File file = checkFile(exchange, params);
             log.info("Process GET request. Chunk: {}", chunk);
-            ContentUtils.sendFileRange(exchange, chunk, file, Boolean.parseBoolean(params.get("needDecrypt")));
+            String needDecryptParam = params.get("needDecrypt");
+            ContentUtils.sendFileRange(exchange, chunk, file, needDecryptParam == null || Boolean.parseBoolean(needDecryptParam));
         } catch (Exception e) {
             log.error("GET processing error: ", e);
         }

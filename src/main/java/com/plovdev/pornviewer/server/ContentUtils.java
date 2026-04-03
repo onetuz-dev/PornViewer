@@ -57,8 +57,7 @@ public class ContentUtils {
 
         long contentLength = realEnd - realStart + 1;
 
-        log.info("Sending range: client {}-{}, real {}-{}, videoLength={}, metadataSize={}",
-                start, end, realStart, realEnd, videoLength, metadataSize);
+        log.info("Sending range: client {}-{}, real {}-{}, videoLength={}, metadataSize={}", start, end, realStart, realEnd, videoLength, metadataSize);
 
         exchange.getResponseHeaders().set("Content-Type", "video/mp4");
         exchange.getResponseHeaders().set("Accept-Ranges", "bytes");

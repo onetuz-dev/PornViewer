@@ -110,6 +110,7 @@ public class PBPornHandler {
         log.info("Write file to: {}", fileOut);
 
         VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
+
         long videoSize = getVideoSize(url);
         metadata.setVideoSize(videoSize);
         VideoWriter writer = new VideoWriter(metadata);

@@ -151,8 +151,12 @@ public class DownloadsPane extends AnchorPane {
     private Runnable getParseTask(FlowPane pane) {
         return () -> {
             try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile).filter(p -> {
-                String file = p.toString();
-                return file.endsWith(".mp4") || file.endsWith(FileUtils.PORN_VIEWER_SIGN);
+                try {
+                    VideoReader.readMetadata(p.toFile());
+                    return true;
+                } catch (Exception e) {
+                    return false;
+                }
             })) {
                 List<Path> paths = stream.toList();
                 List<DownloadedVideoCard> cards = paths.stream().map(p -> {

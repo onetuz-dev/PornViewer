@@ -39,8 +39,7 @@ public class ServerPaths {
     @NotNull
     public String replaceFileToHttpPath(String file) {
         file = file.substring(file.lastIndexOf("/"));
-        boolean needDecrypt = file.endsWith(FileUtils.PORN_VIEWER_SIGN);
-        String path = String.format(SERVER_BASE + "/video?file=%s&needDecrypt=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), needDecrypt, token);
+        String path = String.format(SERVER_BASE + "/video?file=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), token);
         log.info("Link: {}", path);
         return path;
     }
