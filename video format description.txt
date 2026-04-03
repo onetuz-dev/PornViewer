@@ -1,0 +1,29 @@
+[header:42]
+    PVVF                // 4b magic
+    1                   // 1b version
+    0                   // 1b flag
+    MP4                 // 4b mime type
+    120                 // 4b last chunk padding size
+    12345678            // 8b plain video size
+    12345678            // 8b enc video size
+    12345678            // 8b nonce
+    CRC32               // 4b crc32
+
+[encrypted body:n % 128kb + 16b == 0]
+    [chunk:128kb + 16b]
+        ...             // 128kb encrypted data
+        123456...16     // 16b ChaCha20 tag
+    [chunk:128kb + 16b]
+        ...             // 128kb encrypted data
+        123456...16     // 16b ChaCha20 tag
+    ...
+[metadata:n]
+1234                    // 4b total metadat size
+1234                    // 4b encrypted JSON size
+1234                    // 4b encrypted preview size
+123456789012            // 8b base metadata nonce
+ENC_STRING              // nb encrypted JSON
+123456...16             // 16b ChaCha20 JSON tag
+...                     // nb encrypted preview
+123456...16             // 16b ChaCha20 preview tag
+CRC32                   // 4b metadata crc32(last 4b)

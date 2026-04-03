@@ -3,15 +3,21 @@ package com.plovdev.pornviewer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.plovdev.pornviewer.databases.SecureDB;
+import com.plovdev.pornviewer.encryptsupport.CipherEngineUtils;
+import com.plovdev.pornviewer.encryptsupport.CryptoEngine;
 import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
-import com.plovdev.pornviewer.utility.files.FileUtils;
+import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import javax.crypto.Cipher;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -25,8 +31,18 @@ public class Test {
     private static final VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
 
     public static void main(String[] args) throws Exception {
-        VideoMetadata metadata = VideoReader.readMetadata(new File(FileUtils.getPvDownloadsPath() + "/c3b3355fcb0ee92989f742b161497b2dd40df00448eb684e625011342711035a"));
-        System.out.println(metadata);
+        String password = EnvReader.getEnv("VIDEO_PASSWORD");
+        byte[] baseNonce = new byte[8];
+        CipherEngineUtils.createRandomPassword(baseNonce);
+        CryptoEngine engine = new CryptoEngine(Cipher.ENCRYPT_MODE, password.getBytes(StandardCharsets.UTF_8), baseNonce);
+
+        String text = "Hello world";
+        byte[] encrypted = engine.processChunk(0, text.getBytes(StandardCharsets.UTF_8));
+        log.info("Enc text: {}", new String(encrypted, StandardCharsets.UTF_8));
+
+        engine.setMode(Cipher.DECRYPT_MODE);
+        byte[] decrypted = engine.processChunk(0, encrypted);
+        log.info("Dec text: {}", new String(decrypted, StandardCharsets.UTF_8));
     }
 
     public static void decryptDatabaseViaAttach(String encryptedDbPath, String password, String decryptedDbPath) {
