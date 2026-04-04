@@ -1,11 +1,15 @@
 package com.plovdev.pornviewer.events.listeners;
 
 import com.plovdev.pornviewer.events.FileDownloadingEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class FileDownloadingListener {
     private static final ArrayList<FileDownloadingEvent> starts = new ArrayList<>();
+    private static final Logger log = LoggerFactory.getLogger(FileDownloadingListener.class);
 
     private FileDownloadingListener() {
 
@@ -27,7 +31,7 @@ public class FileDownloadingListener {
         }
     }
 
-    public static void notifyEndListeners(String file) {
+    public static void notifyEndListeners(File file) {
         for (FileDownloadingEvent e : starts) e.onDownloadFinishing(file);
     }
 

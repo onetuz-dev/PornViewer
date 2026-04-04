@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel;
 
-import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptionsupport.LoadersUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -45,11 +45,9 @@ public record VideoMetadata(int metadataSize, int encryptedJsonSize, int encrypt
      * @param encryptedPreview зашифрованное preview с тегом, полученное из CryptoEngine.
      * @return VideoMetadata class
      */
-    public static VideoMetadata ofOnlyRequired(byte[] encryptedJson, byte[] encryptedPreview) {
-        int jsonSize = encryptedJson.length - 16;
-        int previewSize = encryptedPreview.length - 16;
-        byte[] nonce = new byte[8];
-        CipherEngineUtils.createRandomPassword(nonce);
+    public static VideoMetadata ofOnlyRequired(byte[] nonce, byte[] encryptedJson, byte[] encryptedPreview) {
+        int jsonSize = encryptedJson.length - TAG_SIZE;
+        int previewSize = encryptedPreview.length - TAG_SIZE;
 
         byte[] jsonContent = Arrays.copyOfRange(encryptedJson, 0, jsonSize);
         byte[] jsonTag = Arrays.copyOfRange(encryptedJson, jsonSize, encryptedJson.length);
@@ -66,15 +64,30 @@ public record VideoMetadata(int metadataSize, int encryptedJsonSize, int encrypt
     /**
      * Формирует полный 12-байтовый Nonce для JSON блока.
      */
-    public byte[] getJsonFullNonce() {
+    public static byte[] getJsonFullNonce(byte[] metadataNonce) {
         return ByteBuffer.allocate(12).put(metadataNonce).put(JSON_INDIFICATOR.getBytes(StandardCharsets.US_ASCII)).array();
+    }
+
+    public static byte[] jsonId() {
+        return JSON_INDIFICATOR.getBytes(StandardCharsets.US_ASCII);
     }
 
     /**
      * Формирует полный 12-байтовый Nonce для Preview блока.
      */
-    public byte[] getPreviewFullNonce() {
+    public static byte[] getPreviewFullNonce(byte[] metadataNonce) {
         return ByteBuffer.allocate(12).put(metadataNonce).put(PREVIEW_INDIFICATOR.getBytes(StandardCharsets.US_ASCII)).array();
+    }
+
+    public byte[] prepareJsonToDecrypt() {
+        return ByteBuffer.allocate(encryptedJsonSize + TAG_SIZE).put(encryptedJson).put(jsonTag).array();
+    }
+    public byte[] preparePreviewToDecrypt() {
+        return ByteBuffer.allocate(encryptedPreviewSize + TAG_SIZE).put(encryptedPreview).put(previewTag).array();
+    }
+
+    public static byte[] previewId() {
+        return PREVIEW_INDIFICATOR.getBytes(StandardCharsets.US_ASCII);
     }
 
     public long calculateCRC32() {
@@ -93,5 +106,24 @@ public record VideoMetadata(int metadataSize, int encryptedJsonSize, int encrypt
         crc32.update(previewTag);
 
         return crc32.getValue();
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[metadata:start]\n");
+        builder.append("metasize - ").append(metadataSize).append("\n");
+        builder.append("jsonsize - ").append(encryptedJsonSize).append("\n");
+        builder.append("previewsize - ").append(encryptedPreviewSize).append("\n");
+        builder.append("nonce - ").append(Arrays.toString(metadataNonce)).append("\n");
+        builder.append("[encrypted json]\n");
+        builder.append("json tag - ").append(Arrays.toString(jsonTag)).append("\n");
+        builder.append("[encrypted preview]\n");
+        builder.append("preview tag - ").append(Arrays.toString(previewTag)).append("\n");
+        builder.append("CRC32 - ").append(metadataCRC32).append("\n");
+        builder.append("[metadata:end]\n");
+
+        return builder.toString();
     }
 }

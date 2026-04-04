@@ -146,13 +146,10 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
             }
 
             @Override
-            public void onDownloadFinishing(String fileString) {
+            public void onDownloadFinishing(File file) {
                 System.err.println("End");
                 try {
                     ObservableList<Node> nodes = pane.getChildren();
-
-                    Path p = Path.of(fileString);
-                    File file = p.toFile();
 
                     downloadedVideoCard.setPath(file.toURI().toString());
                     BigDecimal size = new BigDecimal(String.valueOf(file.length())).divide(new BigDecimal("1000000.0"), 10, RoundingMode.HALF_UP);

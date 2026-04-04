@@ -2,6 +2,8 @@ package com.plovdev.pornviewer.encryptionsupport;
 
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
 
+import java.net.FileNameMap;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -10,6 +12,8 @@ import java.nio.ByteOrder;
  * Использует порядок байтов Big-Endian.
  */
 public class LoadersUtils {
+    private static final FileNameMap MIME_MAP = URLConnection.getFileNameMap();
+
     public static byte[] intToLittleEndian(int value) {
         return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array();
     }
@@ -106,5 +110,20 @@ public class LoadersUtils {
         if (encSize < totalTagsSize) return 0;
 
         return encSize - totalTagsSize;
+    }
+
+    public static String guessMimeType(String filename) {
+        String mimeType = MIME_MAP.getContentTypeFor(filename);
+        if (mimeType == null || mimeType.isEmpty()) {
+            String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+            return switch (ext) {
+                case "mkv" -> "MKV ";
+                case "avi" -> "AVI ";
+                case "mov" -> "MOV ";
+                case "webm" -> "WEBM";
+                default -> "MP4 ";
+            };
+        }
+        return mimeType;
     }
 }

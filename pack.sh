@@ -24,4 +24,4 @@ jpackage --type pkg \
   --temp build_temp \
   --verbose
 
-rm -rf * build_temp
+rm -rf build_temp

@@ -9,7 +9,7 @@ public class CryptoEngine {
     private int mode;
     private byte[] baseNonce;
 
-    private final SecretKeySpec keySpec;
+    private SecretKeySpec keySpec;
 
     public CryptoEngine(int mode, char[] password, byte[] baseNonce) {
         try {
@@ -25,7 +25,7 @@ public class CryptoEngine {
         return mode;
     }
 
-    public void setMode(int mode) {
+    public synchronized void setMode(int mode) {
         this.mode = mode;
     }
 
@@ -33,28 +33,36 @@ public class CryptoEngine {
         return baseNonce;
     }
 
-    public void setBaseNonce(byte[] baseNonce) {
-        this.baseNonce = baseNonce;
+    public synchronized void setBaseNonce(char[] password, byte[] baseNonce) {
+        try {
+            // set nonce and update keySpec:
+            this.baseNonce = baseNonce;
+            keySpec = CipherEngineUtils.createSecretKeySpecFromPassword(password, baseNonce);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public byte[] processChunk(int counter, byte[] block) {
+    public synchronized byte[] processChunk(long counter, byte[] block) {
         try {
             IvParameterSpec parameterSpec = CipherEngineUtils.createParameterSpecFromBaseNonce(counter, baseNonce);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(mode, keySpec, parameterSpec);
-            cipher.updateAAD(LoadersUtils.intToBytes(counter));
+            cipher.updateAAD(LoadersUtils.longToBytes(counter));
+
             return cipher.doFinal(block);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public byte[] processData(byte[] data, byte[] nonce, byte[] id) {
+    public synchronized byte[] processData(byte[] data, byte[] nonce, byte[] id) {
         try {
             IvParameterSpec parameterSpec = CipherEngineUtils.createParameterSpecFromNonce(nonce);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(mode, keySpec, parameterSpec);
             cipher.updateAAD(id);
+
             return cipher.doFinal(data);
         } catch (Exception e) {
             throw new RuntimeException(e);

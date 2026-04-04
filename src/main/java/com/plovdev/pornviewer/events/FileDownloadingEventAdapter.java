@@ -1,5 +1,7 @@
 package com.plovdev.pornviewer.events;
 
+import java.io.File;
+
 public abstract class FileDownloadingEventAdapter implements FileDownloadingEvent {
     @Override
     public void fileDownloading(long downloadedBytes) {
@@ -7,7 +9,7 @@ public abstract class FileDownloadingEventAdapter implements FileDownloadingEven
     }
 
     @Override
-    public void onDownloadFinishing(String file) {
+    public void onDownloadFinishing(File file) {
 
     }
 

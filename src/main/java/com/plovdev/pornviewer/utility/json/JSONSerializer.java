@@ -13,6 +13,7 @@ public class JSONSerializer {
     public static String serialize(Object o) {
         return GSON.toJson(o);
     }
+
     public static <V> V deserialize(String json, Class<V> type) {
         return GSON.fromJson(json, type);
     }
@@ -22,6 +23,7 @@ public class JSONSerializer {
         parseAnnotations(o.getClass(), infoObject);
         return GSON.toJson(infoObject);
     }
+
     private static void parseAnnotations(Class<?> cls, JsonObject object) {
         Field[] fields = cls.getDeclaredFields();
         for (Field field : fields) {

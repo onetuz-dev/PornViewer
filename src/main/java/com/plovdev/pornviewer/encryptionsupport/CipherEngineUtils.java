@@ -31,13 +31,13 @@ public class CipherEngineUtils {
         return result;
     }
 
-    public static IvParameterSpec createParameterSpecFromBaseNonce(int counter, byte[] baseNonce) {
+    public static IvParameterSpec createParameterSpecFromBaseNonce(long counter, byte[] baseNonce) {
         if (baseNonce.length != BASE_NONCE_LENGTH) {
             throw new IllegalArgumentException("Illegal base nonce length! Make sure that nonce length is 8 byte!");
         }
 
         byte[] fullNonce = new byte[CHACHA20_NONCE_LENGTH];
-        byte[] counterNonce = LoadersUtils.intToBytes(counter);
+        byte[] counterNonce = LoadersUtils.intToBytes((int) counter);
         System.arraycopy(baseNonce, 0, fullNonce, 0, baseNonce.length);
         System.arraycopy(counterNonce, 0, fullNonce, BASE_NONCE_LENGTH, counterNonce.length);
 

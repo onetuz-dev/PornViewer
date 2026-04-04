@@ -2,8 +2,10 @@ package com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel;
 
 import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptionsupport.LoadersUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.zip.CRC32;
 
@@ -102,5 +104,24 @@ public record VideoHeader(byte version, byte flag, String mime, int lastChunkPad
         crc32.update(baseNonce);
 
         return crc32.getValue();
+    }
+
+    @NotNull
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[header:start]\n");
+        builder.append("[").append(MAGIC_NUMBER).append("]\n");
+        builder.append("version - ").append(version).append("\n");
+        builder.append("flag - ").append(flag).append("\n");
+        builder.append("mime - ").append(mime).append("\n");
+        builder.append("LCPS - ").append(lastChunkPaddingSize).append("\n");
+        builder.append("plain size - ").append(plainVideoSize).append("\n");
+        builder.append("enc size - ").append(encVideoSize).append("\n");
+        builder.append("nonce - ").append(Arrays.toString(baseNonce)).append("\n");
+        builder.append("CRC32 - ").append(headerCRC32).append("\n");
+        builder.append("[header:end]\n");
+
+        return builder.toString();
     }
 }

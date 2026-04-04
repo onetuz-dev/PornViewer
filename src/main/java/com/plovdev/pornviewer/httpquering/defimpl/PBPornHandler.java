@@ -1,13 +1,7 @@
 package com.plovdev.pornviewer.httpquering.defimpl;
 
-import com.plovdev.pornviewer.encryptionsupport.DigestUtils;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.events.listeners.EventListener;
-import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
-import com.plovdev.pornviewer.utility.files.FileUtils;
-import com.plovdev.pornviewer.utility.security.CipherManager;
-import com.plovdev.pornviewer.utility.security.VideoCipherrer;
+import com.plovdev.pornviewer.models.VideoInfo;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.jsoup.Jsoup;
@@ -17,8 +11,6 @@ import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -102,54 +94,13 @@ public class PBPornHandler {
         return "";
     }
 
-    public void downloadPorn(String url, String filename, VideoMetadata metadata) {
+    public void downloadPorn(String url, String filename, VideoInfo info) {
         log.info("Start loading file: {}", filename);
         EventListener.notifyListeners("START_DWONLOAD:" + filename);
-        String encryptedFileName = DigestUtils.sha256(filename);
-        String fileOut = FileUtils.getPvDownloadsPath() + "/" + encryptedFileName;
-        log.info("Write file to: {}", fileOut);
-
-        VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
-
         long videoSize = getVideoSize(url);
-        metadata.setVideoSize(videoSize);
-        VideoWriter writer = new VideoWriter(metadata);
 
-        try (FileOutputStream file = new FileOutputStream(fileOut)) {
-            writer.writeMetadataHeaderToStream(file);
-
-            // HTTP запрос
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .GET()
-                    .build();
-
-            HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-
-            try (InputStream in = response.body()) {
-                long totalRead = 0;
-                int read;
-                byte[] buffer = new byte[131072];
-
-                FileDownloadingListener.notifyStartsListeners(videoSize);
-
-                while ((read = in.read(buffer)) != -1) {
-                    byte[] originalChunk = new byte[read];
-                    System.arraycopy(buffer, 0, originalChunk, 0, read);
-                    byte[] encryptedChunk = cipher.encrypt(originalChunk, totalRead);
-                    file.write(encryptedChunk);
-                    totalRead += read;
-                    FileDownloadingListener.notifyProcessListeners(totalRead);
-                }
-                log.info("Download completed. Total bytes: {}, Encrypted file: {}", totalRead, fileOut);
-            }
-            writer.writeMetadataToStream(file);
-        } catch (Exception e) {
-            log.error("Error loading file: ", e);
-            FileDownloadingListener.notifyErrorListeners(e);
-        }
-        FileDownloadingListener.notifyEndListeners(fileOut);
+        PornDownloader downloader = new PornDownloader(client, URI.create(url), filename);
+        downloader.startDownload(videoSize, info, getBytes(info.getPic()));
     }
 
     public long getVideoSize(String url) {
@@ -187,13 +138,5 @@ public class PBPornHandler {
         });
 
         return link.get();
-    }
-
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString();
     }
 }

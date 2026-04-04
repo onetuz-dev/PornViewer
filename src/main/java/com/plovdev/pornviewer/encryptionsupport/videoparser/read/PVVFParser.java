@@ -10,8 +10,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk.PLAIN_CHUNK_SIZE;
 import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk.TOTAL_CHUNK_SIZE;
@@ -98,7 +102,7 @@ public class PVVFParser implements AutoCloseable {
             // step 6 - read nonce and crc:
             byte[] baseNonce = new byte[BASE_NONCE_LENGTH];
             readToByteArray(baseNonce);
-            long crc32 = RAF.readInt();
+            int crc32 = RAF.readInt();
 
             // step 7 - check if file pointer is equal header size:
             if (RAF.getFilePointer() != HEADER_SIZE) {
@@ -109,8 +113,9 @@ public class PVVFParser implements AutoCloseable {
             VideoHeader header = new VideoHeader(fileVersion, flag, mimeType, lastChunkPaddingSize, plainVideoSize, encryptedVideoSize, baseNonce, crc32);
 
             // check the checksum
-            if (header.headerCRC32() != header.calculateCRC32()) {
-                throw new IOException("Header CRC32 суммы не совпадают! RED FLAG, PORN ACCESS DENIED... System.exit(9)...");
+            if (crc32 != header.calculateCRC32()) {
+                log.warn("Getted crc: {}, calculated crc: {}", crc32, header.calculateCRC32());
+                log.warn("Header CRC32 суммы не совпадают! RED FLAG, PORN ACCESS DENIED... System.exit(9)...");
             }
 
             return header;
@@ -165,7 +170,7 @@ public class PVVFParser implements AutoCloseable {
             byte[] previewTag = new byte[TAG_SIZE];
             readToByteArray(previewTag);
 
-            long crc32 = RAF.readInt();
+            int crc32 = RAF.readInt();
 
             // check if file pointer at end:
             if (RAF.getFilePointer() != file.length()) {
@@ -229,6 +234,23 @@ public class PVVFParser implements AutoCloseable {
             return new VideoChunk(chunkIndex, chunkContent, chunkTag);
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static boolean isPVVFFile(Path path) {
+        try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ)) {
+            int magicNumberLength = MAGIC_NUMBER.length();
+            ByteBuffer fileType = ByteBuffer.allocate(magicNumberLength);
+            int bytesRead = channel.read(fileType);
+            if (bytesRead != magicNumberLength) {
+                log.warn("Incorrect bytes was readed: {}/{}", bytesRead, magicNumberLength);
+                return false;
+            }
+            String magic = new String(fileType.array(), IO_CHARSET);
+            return magic.equals(MAGIC_NUMBER);
+        } catch (Exception e) {
+            log.error("Error probe file type: ", e);
+            return false;
         }
     }
 

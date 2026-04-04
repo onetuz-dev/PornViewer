@@ -1,8 +1,0 @@
-#!/usr/bin/env sh
-
-if [ ! -d "/Applications" ]
-then
-    mkdir -p "/Applications"
-fi
-
-exit 0

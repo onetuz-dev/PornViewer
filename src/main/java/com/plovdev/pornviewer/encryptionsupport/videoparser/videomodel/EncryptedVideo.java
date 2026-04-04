@@ -27,4 +27,9 @@ public class EncryptedVideo {
     public void setVideoMetadata(VideoMetadata videoMetadata) {
         this.videoMetadata = videoMetadata;
     }
+
+    @Override
+    public String toString() {
+        return videoHeader.toString() + videoMetadata.toString();
+    }
 }

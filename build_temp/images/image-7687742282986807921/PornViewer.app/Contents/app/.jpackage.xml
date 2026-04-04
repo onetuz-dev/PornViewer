@@ -1,7 +1,0 @@
-<?xml version="1.0" ?>
-<jpackage-state version="21.0.2" platform="macOS">
-  <app-version>1.7.3</app-version>
-  <main-launcher>PornViewer</main-launcher>
-  <main-class>com.plovdev.pornviewer.Launcher</main-class>
-  <signed>false</signed>
-  <app-store>false</app-store></jpackage-state>

@@ -50,9 +50,8 @@ public class CipherManager {
         try (Keyring keyring = Keyring.create()) {
             return keyring.getPassword(FileUtils.PORN_VIEWER_SIGN, FileUtils.PORN_VIEWER_SIGN);
         } catch (Exception e) {
-            logger.error("Error getting password from system: ", e);
+            throw new NullPointerException("Getted password is null!");
         }
-        return null;
     }
 
     private SecretKey generateKeyFromPassword(String password) throws Exception {

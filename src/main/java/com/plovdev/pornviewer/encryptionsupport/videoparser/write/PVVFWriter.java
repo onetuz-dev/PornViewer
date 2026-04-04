@@ -41,6 +41,9 @@ public class PVVFWriter implements AutoCloseable {
     public PVVFWriter(OutputStream stream) {
         writeStream = new DataOutputStream(new BufferedOutputStream(stream));
     }
+    public PVVFWriter(BufferedOutputStream stream) {
+        writeStream = new DataOutputStream(stream);
+    }
 
     public File getFile() {
         return file;
@@ -72,6 +75,7 @@ public class PVVFWriter implements AutoCloseable {
             // step 4 - write video mime type:
             writeString(videoHeader.mime());
 
+
             // step 5 - write sizes:
             writeStream.writeInt(videoHeader.lastChunkPaddingSize());
             writeStream.writeLong(videoHeader.plainVideoSize());
@@ -85,11 +89,8 @@ public class PVVFWriter implements AutoCloseable {
         }
     }
 
-    public synchronized void writeVideoMetadata(long encVideoSize, VideoMetadata toWrite) {
+    public synchronized void writeVideoMetadata(VideoMetadata toWrite) {
         Objects.requireNonNull(toWrite);
-        if (encVideoSize < 0) {
-            throw new IllegalArgumentException("Enc video size must be a greather then 0");
-        }
 
         try {
             /*

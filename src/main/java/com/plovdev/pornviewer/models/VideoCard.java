@@ -1,7 +1,6 @@
 package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.databases.FavoriteVideos;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
@@ -221,16 +220,8 @@ public class VideoCard extends PornCard {
     protected MenuItem getLoader(String qual) {
         MenuItem item = new MenuItem(qual);
         item.setOnAction(e -> new Thread(() -> {
-            String title = getTitle();
             String url = info.getUrls().get(qual);
-
-            try {
-                byte[] preview = handler.getBytes(getPic());
-                VideoMetadata meta = new VideoMetadata(title, "video/mp4", info.getDuration(), preview == null ? new byte[0] : preview);
-                handler.downloadPorn(url, title, meta);
-            } catch (Exception ex) {
-                log.error("Loading error: ", ex);
-            }
+            handler.downloadPorn(url, info.getTitle(), info);
         }).start());
         return item;
     }
