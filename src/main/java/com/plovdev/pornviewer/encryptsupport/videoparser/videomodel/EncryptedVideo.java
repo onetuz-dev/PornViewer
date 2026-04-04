@@ -27,12 +27,4 @@ public class EncryptedVideo {
     public void setVideoMetadata(VideoMetadata videoMetadata) {
         this.videoMetadata = videoMetadata;
     }
-
-    /**
-     * Возвращает количество чанков, которое должно быть в видео согласно заголовку.
-     */
-    public long getExpectedChunksCount() {
-        if (videoHeader == null) return 0;
-        return (videoHeader.encVideoSize() / VideoChunk.TOTAL_CHUNK_SIZE);
-    }
 }

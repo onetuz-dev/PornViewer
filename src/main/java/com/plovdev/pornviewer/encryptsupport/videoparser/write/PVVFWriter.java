@@ -6,15 +6,11 @@ import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoMetadat
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk.TOTAL_CHUNK_SIZE;
 import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader.HEADER_SIZE;
 import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader.MAGIC_NUMBER;
 
@@ -30,7 +26,7 @@ public class PVVFWriter implements AutoCloseable {
      * Sources to write data.
      */
     private File file;
-    private RandomAccessFile RAF;
+    private DataOutputStream writeStream;
 
     /**
      * Создает экземпляр писателя для указанного файла.
@@ -39,7 +35,11 @@ public class PVVFWriter implements AutoCloseable {
      */
     public PVVFWriter(File file) {
         this.file = file;
-        updateRaf(file);
+        updateStream(file);
+    }
+
+    public PVVFWriter(OutputStream stream) {
+        writeStream = new DataOutputStream(new BufferedOutputStream(stream));
     }
 
     public File getFile() {
@@ -53,7 +53,7 @@ public class PVVFWriter implements AutoCloseable {
      */
     public synchronized void setFile(File file) {
         this.file = file;
-        updateRaf(file);
+        updateStream(file);
     }
 
 
@@ -61,33 +61,25 @@ public class PVVFWriter implements AutoCloseable {
         Objects.requireNonNull(videoHeader);
 
         try {
-            // always setup RAF to file start
-            RAF.seek(0);
-
             // step 1 - wrie magic number:
             writeString(MAGIC_NUMBER);
 
             // step 2 - write version:
-            RAF.writeByte(videoHeader.version());
+            writeStream.writeByte(videoHeader.version());
             // step 3 - write flag:
-            RAF.writeByte(videoHeader.flag());
+            writeStream.writeByte(videoHeader.flag());
 
             // step 4 - write video mime type:
             writeString(videoHeader.mime());
 
             // step 5 - write sizes:
-            RAF.writeInt(videoHeader.lastChunkPaddingSize());
-            RAF.writeLong(videoHeader.plainVideoSize());
-            RAF.writeLong(videoHeader.encVideoSize());
+            writeStream.writeInt(videoHeader.lastChunkPaddingSize());
+            writeStream.writeLong(videoHeader.plainVideoSize());
+            writeStream.writeLong(videoHeader.encVideoSize());
 
             // step 6 - write nonce and crc:
-            RAF.write(videoHeader.baseNonce());
-            RAF.writeInt((int) videoHeader.calculateCRC32());
-
-            // step 7 - check if file pointer is equal header size:
-            if (RAF.getFilePointer() != HEADER_SIZE) {
-                throw new IOException("Error write file header: invalid pointer: " + RAF.getFilePointer());
-            }
+            writeStream.write(videoHeader.baseNonce());
+            writeStream.writeInt((int) videoHeader.calculateCRC32());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -100,6 +92,46 @@ public class PVVFWriter implements AutoCloseable {
         }
 
         try {
+            /*
+            Задача записать блок с метаданными:
+            1 - размеры данных в метадате
+            2 - metadata nonce
+            3 - данные с их ChaCha20-tag'ами
+            4 - crc32
+             */
+
+            // sizes block
+            writeStream.writeInt(toWrite.metadataSize());
+            writeStream.writeInt(toWrite.encryptedJsonSize());
+            writeStream.writeInt(toWrite.encryptedPreviewSize());
+
+            // base nonce
+            writeStream.write(toWrite.metadataNonce());
+
+            // write JSON and tag:
+            writeStream.write(toWrite.encryptedJson());
+            writeStream.write(toWrite.jsonTag());
+
+            // read preview and tag:
+            writeStream.write(toWrite.encryptedPreview());
+            writeStream.write(toWrite.previewTag());
+
+            writeStream.writeInt((int) toWrite.calculateCRC32());
+
+            writeStream.flush();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @SuppressWarnings("resources")
+    public synchronized void updateVideoMetadata(long encVideoSize, VideoMetadata toWrite) {
+        Objects.requireNonNull(toWrite);
+        if (encVideoSize < 0) {
+            throw new IllegalArgumentException("Enc video size must be a greather then 0");
+        }
+
+        try (RandomAccessFile RAF = new RandomAccessFile(file, "rw")) {
             // calculate real metadata position(42 + enc video size):
             long metadataOffset = HEADER_SIZE + encVideoSize;
             RAF.seek(metadataOffset); // seek to metadata block
@@ -130,24 +162,17 @@ public class PVVFWriter implements AutoCloseable {
 
             RAF.writeInt((int) toWrite.calculateCRC32());
 
-            try (FileChannel channel = RAF.getChannel()) {
-                channel.truncate(RAF.getFilePointer());
-                channel.force(true);
-            }
+            RAF.getChannel().truncate(RAF.getFilePointer()).force(true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public synchronized void writeVideoChunk(VideoChunk videoChunk) {
+    public synchronized void appendVideoChunk(VideoChunk videoChunk) {
         Objects.requireNonNull(videoChunk);
 
         try {
-            // calculating chunk start position
-            long chunkStart = HEADER_SIZE + (TOTAL_CHUNK_SIZE * videoChunk.chunkNumber());
-            RAF.seek(chunkStart); // seek to chunk
-
-            RAF.write(videoChunk.prepareChunk());
+            writeStream.write(videoChunk.prepareChunk());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -161,25 +186,25 @@ public class PVVFWriter implements AutoCloseable {
         if (bytes.length != 4) {
             byte[] fixed = new byte[4];
             System.arraycopy(bytes, 0, fixed, 0, Math.min(bytes.length, 4));
-            RAF.write(fixed);
+            writeStream.write(fixed);
         } else {
-            RAF.write(bytes);
+            writeStream.write(bytes);
         }
     }
 
 
     /**
-     * Инициализирует или переоткрывает {@link RandomAccessFile} в режиме записи.
+     * Инициализирует или переоткрывает поток для записи.
      *
      * @param file Файл для открытия.
      * @throws RuntimeException если файл не найден или доступ запрещен.
      */
-    private void updateRaf(File file) {
+    private void updateStream(File file) {
         try {
-            if (RAF != null) {
-                RAF.close();
+            if (writeStream != null) {
+                writeStream.close();
             }
-            RAF = new RandomAccessFile(file, "rw");
+            writeStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -191,6 +216,6 @@ public class PVVFWriter implements AutoCloseable {
      */
     @Override
     public void close() throws Exception {
-        RAF.close();
+        writeStream.close();
     }
 }

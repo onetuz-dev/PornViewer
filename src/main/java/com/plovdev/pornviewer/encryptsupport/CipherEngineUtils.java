@@ -1,22 +1,34 @@
 package com.plovdev.pornviewer.encryptsupport;
 
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.Arrays;
 
 public class CipherEngineUtils {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
+    private static final int ITERATIONS = 600000;
+    private static final int KEY_LENGTH = 256;
+    private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+
     public static final int CHACHA20_NONCE_LENGTH = 12;
     public static final int BASE_NONCE_LENGTH = 8;
     public static final int COUNTER_NONCE_LENGTH = 4;
 
-    public static SecretKeySpec createSecretKeySpecFromPassword(byte[] password) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        return new SecretKeySpec(Arrays.copyOfRange(digest.digest(password), 0, 32), "ChaCha20");
+    public static SecretKeySpec createSecretKeySpecFromPassword(char[] password, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        KeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance(ALGORITHM);
+        byte[] key = factory.generateSecret(spec).getEncoded();
+        SecretKeySpec result = new SecretKeySpec(key, "ChaCha20");
+        Arrays.fill(key, (byte) 0); // затираем следы
+        Arrays.fill(password, ' ');
+        return result;
     }
 
     public static IvParameterSpec createParameterSpecFromBaseNonce(int counter, byte[] baseNonce) {

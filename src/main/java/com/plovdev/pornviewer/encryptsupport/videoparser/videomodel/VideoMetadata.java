@@ -1,9 +1,11 @@
 package com.plovdev.pornviewer.encryptsupport.videoparser.videomodel;
 
+import com.plovdev.pornviewer.encryptsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptsupport.LoadersUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.zip.CRC32;
 
@@ -37,6 +39,31 @@ public record VideoMetadata(int metadataSize, int encryptedJsonSize, int encrypt
     }
 
     /**
+     * Создает VideoMetadata из минимального набора данных.
+     *
+     * @param encryptedJson    зашифрованная json строка с тегом, полученная из CryptoEngine.
+     * @param encryptedPreview зашифрованное preview с тегом, полученное из CryptoEngine.
+     * @return VideoMetadata class
+     */
+    public static VideoMetadata ofOnlyRequired(byte[] encryptedJson, byte[] encryptedPreview) {
+        int jsonSize = encryptedJson.length - 16;
+        int previewSize = encryptedPreview.length - 16;
+        byte[] nonce = new byte[8];
+        CipherEngineUtils.createRandomPassword(nonce);
+
+        byte[] jsonContent = Arrays.copyOfRange(encryptedJson, 0, jsonSize);
+        byte[] jsonTag = Arrays.copyOfRange(encryptedJson, jsonSize, encryptedJson.length);
+
+        byte[] previewContent = Arrays.copyOfRange(encryptedPreview, 0, previewSize);
+        byte[] previewTag = Arrays.copyOfRange(encryptedPreview, previewSize, encryptedPreview.length);
+
+        int metadataSize = 20 + encryptedJson.length + encryptedPreview.length; // 20b metadata technical fields + content sizes
+        long crc32 = calculateCRC32(metadataSize, jsonSize, previewSize, nonce, jsonContent, jsonTag, previewContent, previewTag);
+
+        return new VideoMetadata(metadataSize, jsonSize, previewSize, nonce, jsonContent, jsonTag, previewContent, previewTag, crc32);
+    }
+
+    /**
      * Формирует полный 12-байтовый Nonce для JSON блока.
      */
     public byte[] getJsonFullNonce() {
@@ -51,6 +78,10 @@ public record VideoMetadata(int metadataSize, int encryptedJsonSize, int encrypt
     }
 
     public long calculateCRC32() {
+        return calculateCRC32(metadataSize, encryptedJsonSize, encryptedPreviewSize, metadataNonce, encryptedJson, jsonTag, encryptedPreview, previewTag);
+    }
+
+    public static long calculateCRC32(int metadataSize, int encryptedJsonSize, int encryptedPreviewSize, byte[] metadataNonce, byte[] encryptedJson, byte[] jsonTag, byte[] encryptedPreview, byte[] previewTag) {
         CRC32 crc32 = new CRC32();
         crc32.update(LoadersUtils.intToBytes(metadataSize));
         crc32.update(LoadersUtils.intToBytes(encryptedJsonSize));

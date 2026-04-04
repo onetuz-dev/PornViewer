@@ -31,8 +31,8 @@ public class ParserTest {
             System.arraycopy("HELLO CHUNK 0".getBytes(), 0, fakeData1, 0, 13);
             System.arraycopy("HELLO CHUNK 1".getBytes(), 0, fakeData2, 0, 13);
 
-            writer.writeVideoChunk(new VideoChunk(0, fakeData1, fakeTag));
-            writer.writeVideoChunk(new VideoChunk(1, fakeData2, fakeTag));
+            writer.appendVideoChunk(new VideoChunk(0, fakeData1, fakeTag));
+            writer.appendVideoChunk(new VideoChunk(1, fakeData2, fakeTag));
         }
 
         // Читаем обратно

@@ -11,11 +11,11 @@ public class CryptoEngine {
 
     private final SecretKeySpec keySpec;
 
-    public CryptoEngine(int mode, byte[] password, byte[] baseNonce) {
+    public CryptoEngine(int mode, char[] password, byte[] baseNonce) {
         try {
             this.mode = mode;
             this.baseNonce = baseNonce;
-            keySpec = CipherEngineUtils.createSecretKeySpecFromPassword(password);
+            keySpec = CipherEngineUtils.createSecretKeySpecFromPassword(password, baseNonce);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -42,20 +42,19 @@ public class CryptoEngine {
             IvParameterSpec parameterSpec = CipherEngineUtils.createParameterSpecFromBaseNonce(counter, baseNonce);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(mode, keySpec, parameterSpec);
-
-
+            cipher.updateAAD(LoadersUtils.intToBytes(counter));
             return cipher.doFinal(block);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public byte[] processData(byte[] data, byte[] nonce) {
+    public byte[] processData(byte[] data, byte[] nonce, byte[] id) {
         try {
             IvParameterSpec parameterSpec = CipherEngineUtils.createParameterSpecFromNonce(nonce);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(mode, keySpec, parameterSpec);
-
+            cipher.updateAAD(id);
             return cipher.doFinal(data);
         } catch (Exception e) {
             throw new RuntimeException(e);
