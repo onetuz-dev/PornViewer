@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.encryptsupport;
+package com.plovdev.pornviewer.encryptionsupport;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;

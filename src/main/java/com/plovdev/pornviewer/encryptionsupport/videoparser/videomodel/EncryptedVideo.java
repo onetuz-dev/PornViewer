@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.videomodel;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel;
 
 public class EncryptedVideo {
     private VideoHeader videoHeader;

@@ -1,8 +1,8 @@
 package com.plovdev.pornviewer;
 
 import com.plovdev.pornviewer.databases.SecureDB;
-import com.plovdev.pornviewer.encryptsupport.CipherEngineUtils;
-import com.plovdev.pornviewer.encryptsupport.CryptoEngine;
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
+import com.plovdev.pornviewer.encryptionsupport.CryptoEngine;
 import com.plovdev.pornviewer.utility.files.EnvReader;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;

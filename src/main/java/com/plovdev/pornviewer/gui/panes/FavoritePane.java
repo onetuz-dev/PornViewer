@@ -3,7 +3,7 @@ package com.plovdev.pornviewer.gui.panes;
 import com.plovdev.pornviewer.databases.FavoriteGroupProvider;
 import com.plovdev.pornviewer.databases.FavoriteVideos;
 import com.plovdev.pornviewer.databases.UserPreferences;
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.DurationUtils;

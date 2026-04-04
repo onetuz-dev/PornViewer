@@ -1,10 +1,10 @@
 package com.plovdev.pornviewer;
 
 import com.google.gson.Gson;
-import com.plovdev.pornviewer.encryptsupport.videoparser.read.PVVFParser;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader;
-import com.plovdev.pornviewer.encryptsupport.videoparser.write.PVVFWriter;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFParser;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.write.PVVFWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

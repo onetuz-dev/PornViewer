@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.server;
 
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;

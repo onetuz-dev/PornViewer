@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.encryptsupport;
+package com.plovdev.pornviewer.encryptionsupport;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

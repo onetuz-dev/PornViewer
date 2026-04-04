@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.videomodel;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel;
 
 import java.util.Objects;
 

@@ -1,8 +1,8 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.write;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.write;
 
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +11,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader.HEADER_SIZE;
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader.MAGIC_NUMBER;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader.HEADER_SIZE;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader.MAGIC_NUMBER;
 
 public class PVVFWriter implements AutoCloseable {
     private static final Logger log = LoggerFactory.getLogger(PVVFWriter.class);

@@ -1,7 +1,7 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.videomodel;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel;
 
-import com.plovdev.pornviewer.encryptsupport.CipherEngineUtils;
-import com.plovdev.pornviewer.encryptsupport.LoadersUtils;
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
+import com.plovdev.pornviewer.encryptionsupport.LoadersUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;

@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser;
+package com.plovdev.pornviewer.encryptionsupport.videoparser;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

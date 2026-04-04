@@ -1,9 +1,9 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.read;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.read;
 
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.EncryptedVideo;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader;
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +13,10 @@ import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk.PLAIN_CHUNK_SIZE;
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk.TOTAL_CHUNK_SIZE;
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoHeader.*;
-import static com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoMetadata.TAG_SIZE;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk.PLAIN_CHUNK_SIZE;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk.TOTAL_CHUNK_SIZE;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader.*;
+import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoMetadata.TAG_SIZE;
 
 /**
  * Парсер для работы с зашифрованными видеофайлами формата PVVF.

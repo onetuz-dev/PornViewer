@@ -1,6 +1,6 @@
-package com.plovdev.pornviewer.encryptsupport;
+package com.plovdev.pornviewer.encryptionsupport;
 
-import com.plovdev.pornviewer.encryptsupport.videoparser.videomodel.VideoChunk;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

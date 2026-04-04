@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.databases.FavoriteVideos;
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;

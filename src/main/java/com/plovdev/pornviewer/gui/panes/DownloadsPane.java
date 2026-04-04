@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.gui.panes;
 
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptsupport.videoparser.read.VideoReader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoReader;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileListener;
 import com.plovdev.pornviewer.gui.filters.FilterBox;

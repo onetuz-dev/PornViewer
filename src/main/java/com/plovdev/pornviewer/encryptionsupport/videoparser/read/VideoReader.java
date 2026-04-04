@@ -1,9 +1,9 @@
-package com.plovdev.pornviewer.encryptsupport.videoparser.read;
+package com.plovdev.pornviewer.encryptionsupport.videoparser.read;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.plovdev.pornviewer.encryptsupport.LoadersUtils;
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.LoadersUtils;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import org.slf4j.Logger;

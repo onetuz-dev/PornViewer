@@ -1,8 +1,8 @@
 package com.plovdev.pornviewer.httpquering.defimpl;
 
-import com.plovdev.pornviewer.encryptsupport.DigestUtils;
-import com.plovdev.pornviewer.encryptsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptsupport.videoparser.write.VideoWriter;
+import com.plovdev.pornviewer.encryptionsupport.DigestUtils;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.write.VideoWriter;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
 import com.plovdev.pornviewer.utility.files.FileUtils;
