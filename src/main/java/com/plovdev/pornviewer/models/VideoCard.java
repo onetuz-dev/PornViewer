@@ -5,6 +5,7 @@ import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.ContextMenu;
@@ -19,6 +20,8 @@ import javafx.scene.shape.SVGPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -114,99 +117,108 @@ public class VideoCard extends PornCard {
 
     @Override
     public void render() {
-        DefPornParser parser = new DefPornParser();
-        StackPane mainContainer = new StackPane();
-        mainContainer.setMaxWidth(400);
+        try {
+            DefPornParser parser = new DefPornParser();
+            StackPane mainContainer = new StackPane();
+            mainContainer.setMaxWidth(400);
 
-        // Основной контент (видео + информация)
-        ImageView view = new ImageView(new Image(pic));
-        view.setSmooth(true);
-        view.getStyleClass().add("video-preview");
-        view.setFitWidth(420);
-        view.setFitHeight(250);
-        view.setPreserveRatio(true);
+            Image image;
+            if (pic.endsWith(".webp")) {
+                image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(handler.getBytes(pic))), null);
+            } else {
+                image = new Image(pic);
+            }
+            ImageView view = new ImageView(image);
+            view.setSmooth(true);
+            view.getStyleClass().add("video-preview");
+            view.setFitWidth(420);
+            view.setFitHeight(250);
+            view.setPreserveRatio(true);
 
-        Label label = new Label(String.valueOf(views));
-        label.getStyleClass().add("marker");
+            Label label = new Label(String.valueOf(views));
+            label.getStyleClass().add("marker");
 
-        Hyperlink titleLabel = new Hyperlink(title);
-        titleLabel.setOnAction(e -> {
-            System.out.println(getUrl());
-            setInfo(parser.parseVideo(getUrl()));
-            VideoPlayerPane player = new VideoPlayerPane(this);
-            player.show();
-        });
-        titleLabel.getStyleClass().add("video-title");
-        titleLabel.setMaxWidth(350);
-        Label dur = new Label(duration);
-        dur.getStyleClass().add("marker");
+            Hyperlink titleLabel = new Hyperlink(title);
+            titleLabel.setOnAction(e -> {
+                System.out.println(getUrl());
+                setInfo(parser.parseVideo(getUrl()));
+                VideoPlayerPane player = new VideoPlayerPane(this);
+                player.show();
+            });
+            titleLabel.getStyleClass().add("video-title");
+            titleLabel.setMaxWidth(350);
+            Label dur = new Label(duration);
+            dur.getStyleClass().add("marker");
 
-        Label rating = new Label(this.rating);
+            Label rating = new Label(this.rating);
 
-        HBox hBox = new HBox(10, titleLabel, rating);
-        hBox.getStyleClass().add("title-box");
-        VBox box = new VBox(10, view, hBox);
-        box.getStyleClass().add("trailer");
+            HBox hBox = new HBox(10, titleLabel, rating);
+            hBox.getStyleClass().add("title-box");
+            VBox box = new VBox(10, view, hBox);
+            box.getStyleClass().add("trailer");
 
-        // Панель с дополнительной информацией (показывается при наведении)
-        Region region = new Region();
-        HBox.setHgrow(region, Priority.ALWAYS);
+            // Панель с дополнительной информацией (показывается при наведении)
+            Region region = new Region();
+            HBox.setHgrow(region, Priority.ALWAYS);
 
-        Region r = new Region();
-        VBox.setVgrow(r, Priority.ALWAYS);
+            Region r = new Region();
+            VBox.setVgrow(r, Priority.ALWAYS);
 
-        Region r2 = new Region();
-        VBox.setVgrow(r2, Priority.ALWAYS);
+            Region r2 = new Region();
+            VBox.setVgrow(r2, Priority.ALWAYS);
 
-        Region r1 = new Region();
-        HBox.setHgrow(r1, Priority.ALWAYS);
+            Region r1 = new Region();
+            HBox.setHgrow(r1, Priority.ALWAYS);
 
-        Label fav = new Label();
-        favPath.setContent("M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z");
+            Label fav = new Label();
+            favPath.setContent("M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z");
 
-        favPath.setStrokeWidth(2);
-        favPath.setStroke(Color.WHITE);
-        favPath.setFill(isFavorite() ? Color.rgb(255, 15, 45) : Color.TRANSPARENT);
-        fav.setGraphic(favPath);
-        fav.setTranslateX(3.5);
-
-
-        ImageView download = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/plovdev/pornviewer/download.png"))));
-        download.setFitWidth(30);
-        download.setFitHeight(30);
-        download.setPreserveRatio(true);
-
-        download.setOnMousePressed(e -> {
-            setInfo(parser.parseVideo(getUrl()));
-            showContextMenu(download, e.getScreenX(), e.getScreenY());
-        });
+            favPath.setStrokeWidth(2);
+            favPath.setStroke(Color.WHITE);
+            favPath.setFill(isFavorite() ? Color.rgb(255, 15, 45) : Color.TRANSPARENT);
+            fav.setGraphic(favPath);
+            fav.setTranslateX(3.5);
 
 
-        VBox vBox = new VBox(new HBox(r1, new VBox(10, fav, download)), r, new HBox(label, region, dur));
-        vBox.setPadding(new Insets(10));
-        HBox.setHgrow(vBox, Priority.ALWAYS);
+            ImageView download = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/plovdev/pornviewer/download.png"))));
+            download.setFitWidth(30);
+            download.setFitHeight(30);
+            download.setPreserveRatio(true);
+
+            download.setOnMousePressed(e -> {
+                setInfo(parser.parseVideo(getUrl()));
+                showContextMenu(download, e.getScreenX(), e.getScreenY());
+            });
 
 
-        HBox infoOverlay = new HBox(vBox);
-        infoOverlay.setVisible(false);
-        infoOverlay.getStyleClass().add("video-hover");
+            VBox vBox = new VBox(new HBox(r1, new VBox(10, fav, download)), r, new HBox(label, region, dur));
+            vBox.setPadding(new Insets(10));
+            HBox.setHgrow(vBox, Priority.ALWAYS);
 
-        // Позиционируем overlay поверх изображения
-        StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
 
-        // Собираем всё вместе
-        mainContainer.getChildren().addAll(box, infoOverlay);
+            HBox infoOverlay = new HBox(vBox);
+            infoOverlay.setVisible(false);
+            infoOverlay.getStyleClass().add("video-hover");
 
-        // Обработчики наведения
-        mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
-        mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
-        fav.setOnMousePressed(e -> {
-            setFavorite(!isFavorite());
-            makeFavorite();
-        });
+            // Позиционируем overlay поверх изображения
+            StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
+            StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
 
-        getChildren().add(mainContainer);
+            // Собираем всё вместе
+            mainContainer.getChildren().addAll(box, infoOverlay);
+
+            // Обработчики наведения
+            mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
+            mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
+            fav.setOnMousePressed(e -> {
+                setFavorite(!isFavorite());
+                makeFavorite();
+            });
+
+            getChildren().add(mainContainer);
+        } catch (Exception e) {
+            log.error("Rendering error: ", e);
+        }
     }
 
     private void showContextMenu(ImageView node, double x, double y) {

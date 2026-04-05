@@ -217,6 +217,7 @@ public class MainMenuPane extends AnchorPane {
 
                 cards.forEach(e -> {
                     e.render();
+                    System.out.println("Rendering: " + e.getPic());
                     originNots.add(e);
                     Platform.runLater(() -> pane.getChildren().add(e));
                 });

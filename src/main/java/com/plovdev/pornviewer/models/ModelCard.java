@@ -1,6 +1,8 @@
 package com.plovdev.pornviewer.models;
 
 import com.plovdev.pornviewer.events.listeners.ClickListener;
+import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Hyperlink;
@@ -10,6 +12,9 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 
 public class ModelCard extends PornCard {
     private static final Logger log = LoggerFactory.getLogger(ModelCard.class);
@@ -38,54 +43,66 @@ public class ModelCard extends PornCard {
 
     @Override
     public void render() {
-        StackPane mainContainer = new StackPane();
+        try {
+            StackPane mainContainer = new StackPane();
+            PBPornHandler handler = new PBPornHandler();
 
-        ImageView view = new ImageView(new Image(modelInfo.getAvatar()));
-        view.setSmooth(true);
-        view.getStyleClass().add("video-preview");
-        view.setPreserveRatio(true);
+            Image image;
+            if (pic.endsWith(".webp")) {
+                image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(handler.getBytes(pic))), null);
+            } else {
+                image = new Image(pic);
+            }
+            ImageView view = new ImageView(image);
 
-        Hyperlink titleLabel = new Hyperlink(modelInfo.getRusName());
-        setTitle(modelInfo.getRusName());
-        titleLabel.setOnAction(e -> ClickListener.notifyListeners(modelInfo));
-        titleLabel.getStyleClass().add("video-title");
+            view.setSmooth(true);
+            view.getStyleClass().add("video-preview");
+            view.setPreserveRatio(true);
 
-        HBox hBox = new HBox(titleLabel);
-        hBox.getStyleClass().add("title-box");
-        VBox box = new VBox(10, view, hBox);
-        box.getStyleClass().add("trailer");
+            Hyperlink titleLabel = new Hyperlink(modelInfo.getRusName());
+            setTitle(modelInfo.getRusName());
+            titleLabel.setOnAction(e -> ClickListener.notifyListeners(modelInfo));
+            titleLabel.getStyleClass().add("video-title");
 
-        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
-        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
-        view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+            HBox hBox = new HBox(titleLabel);
+            hBox.getStyleClass().add("title-box");
+            VBox box = new VBox(10, view, hBox);
+            box.getStyleClass().add("trailer");
 
-        box.minWidthProperty().bind(pane.widthProperty().divide(3.5));
-        box.prefWidthProperty().bind(pane.widthProperty().divide(3.5));
-        box.maxWidthProperty().bind(pane.widthProperty().divide(3.5));
+            view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+            view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+            view.fitWidthProperty().bind(pane.widthProperty().divide(3.5));
+
+            box.minWidthProperty().bind(pane.widthProperty().divide(3.5));
+            box.prefWidthProperty().bind(pane.widthProperty().divide(3.5));
+            box.maxWidthProperty().bind(pane.widthProperty().divide(3.5));
 
 
-        Label county = new Label(modelInfo.getCountry());
-        county.getStyleClass().add("model-country");
+            Label county = new Label(modelInfo.getCountry());
+            county.getStyleClass().add("model-country");
 
-        Label videos = new Label(String.valueOf(modelInfo.getVideos()));
-        videos.getStyleClass().add("marker-download");
+            Label videos = new Label(String.valueOf(modelInfo.getVideos()));
+            videos.getStyleClass().add("marker-download");
 
-        Region region = new Region();
-        HBox.setHgrow(region, Priority.ALWAYS);
+            Region region = new Region();
+            HBox.setHgrow(region, Priority.ALWAYS);
 
-        HBox infoOverlay = new HBox(county, region, videos);
-        infoOverlay.setVisible(false);
-        infoOverlay.getStyleClass().add("model-hover");
+            HBox infoOverlay = new HBox(county, region, videos);
+            infoOverlay.setVisible(false);
+            infoOverlay.getStyleClass().add("model-hover");
 
-        // Позиционируем overlay поверх изображения
-        StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
+            // Позиционируем overlay поверх изображения
+            StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
+            StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
 
-        // Обработчики наведения
-        mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
-        mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
+            // Обработчики наведения
+            mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
+            mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
 
-        mainContainer.getChildren().addAll(box, infoOverlay);
-        getChildren().add(mainContainer);
+            mainContainer.getChildren().addAll(box, infoOverlay);
+            getChildren().add(mainContainer);
+        } catch (Exception e) {
+            log.error("Model rendering error: ", e);
+        }
     }
 }

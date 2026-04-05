@@ -1,7 +1,7 @@
 package com.plovdev.pornviewer.pornimpl.sexstuds;
 
 import com.plovdev.pornviewer.databases.FavoriteVideos;
-import com.plovdev.pornviewer.httpquering.Category;
+import com.plovdev.pornviewer.models.Category;
 import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.*;

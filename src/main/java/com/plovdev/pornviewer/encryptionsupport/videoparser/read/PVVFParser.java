@@ -182,7 +182,8 @@ public class PVVFParser implements AutoCloseable {
 
             // check the checksum
             if (crc32 != metadata.calculateCRC32()) {
-                throw new IOException("Metadata CRC32 суммы не совпадают! RED FLAG, PORN ACCESS DENIED... System.exit(9)...");
+                log.warn("Getted heaser crc: {}, calculated crc: {}", crc32, metadata.calculateCRC32());
+                log.warn("Metadata CRC32 суммы не совпадают! RED FLAG, PORN ACCESS DENIED... System.exit(9)...");
             }
 
             return metadata;

@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.httpquering;
+package com.plovdev.pornviewer.models;
 
 import java.util.Objects;
 

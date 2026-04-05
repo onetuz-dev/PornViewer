@@ -2,15 +2,15 @@ package com.plovdev.pornviewer;
 
 import com.plovdev.pornviewer.databases.SecureDB;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFParser;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.write.PVVFWriter;
+import com.plovdev.pornviewer.models.DownloadedVideoInfo;
 import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.Statement;
 
@@ -19,14 +19,16 @@ public class Test {
     private static final VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
 
     public static void main(String[] args) throws Exception {
-        processVideo();
+        processVideo("3ad1e75879ee6c908cb837d44f658ff4eeb1cc6289bf31377dc2862dc309412e");
     }
 
-    private static void processVideo() {
-        try (PVVFParser parser = new PVVFParser(new File("/Users/mac/.PornViewer/downloads/c3b3355fcb0ee92989f742b161497b2dd40df00448eb684e625011342711035a"))) {
+    private static void processVideo(String videoFile) {
+        File file = new File("/Users/mac/.PornViewer/downloads/" + videoFile);
+        try (PVVFParser parser = new PVVFParser(file)) {
             EncryptedVideo video = parser.collectEncryptedVideo();
-            PVVFWriter writer = new PVVFWriter(new File("/Users/mac/.PornViewer/downloads/c3b3355fcb0ee92989f742b161497b2dd40df00448eb684e625011342711035a"));
-            writer.updateVideoMetadata(video.getVideoHeader().encVideoSize(), video.getVideoMetadata());
+            System.out.println(video);
+            DownloadedVideoInfo info = PVVFVideoReader.readInfo(file);
+            System.out.println(info);
         } catch (Exception e) {
             log.error("Reading error: ", e);
         }

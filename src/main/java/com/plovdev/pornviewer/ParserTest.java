@@ -1,9 +1,11 @@
 package com.plovdev.pornviewer;
 
 import com.google.gson.Gson;
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFParser;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoMetadata;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.write.PVVFWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +22,8 @@ public class ParserTest {
         long mockCrc = 0;
 
         try (PVVFWriter writer = new PVVFWriter(testFile)) {
-            long encSize = 2L * (128 * 1024 + 16);
-            VideoHeader finalHeader = new VideoHeader((byte) 1, (byte) 0, "TXT ", 0, encSize, encSize, mockNonce, mockCrc);
+            long plainSize = 2L * (128 * 1024);
+            VideoHeader finalHeader = VideoHeader.ofOnlyRequired("TXT ", 0, plainSize);
             writer.writeVideoHeader(finalHeader);
 
             byte[] fakeData1 = new byte[128 * 1024];
@@ -33,6 +35,21 @@ public class ParserTest {
 
             writer.appendVideoChunk(new VideoChunk(0, fakeData1, fakeTag));
             writer.appendVideoChunk(new VideoChunk(1, fakeData2, fakeTag));
+
+            byte[] nonce = new byte[VideoMetadata.BASE_NONCE_LENGTH];
+            CipherEngineUtils.createRandomPassword(nonce);
+
+            byte[] fakeJson = new byte[1024];
+            byte[] fakePreview = new byte[2048];
+
+            System.arraycopy("{\"tag\": \"padded\"}".getBytes(), 0, fakeJson, 0, 17);
+            System.arraycopy(fakeTag, 0, fakeJson, 1024 - 16, 16);
+
+            System.arraycopy("fnirbwekjnuirfnwds".getBytes(), 0, fakePreview, 0, 18);
+            System.arraycopy(fakeTag, 0, fakePreview, 2048 - 16, 16);
+
+            VideoMetadata metadata = VideoMetadata.ofOnlyRequired(nonce, fakeJson, fakePreview);
+            writer.writeVideoMetadata(metadata);
         }
 
         // Читаем обратно

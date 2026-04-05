@@ -10,6 +10,8 @@ import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHead
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoMetadata;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.write.PVVFWriter;
 import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
+import com.plovdev.pornviewer.httpquering.PornRequest;
+import com.plovdev.pornviewer.httpquering.PornRequestProvider;
 import com.plovdev.pornviewer.models.VideoInfo;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.json.VideoInfoSerializer;
@@ -21,9 +23,6 @@ import javax.crypto.Cipher;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 import static com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk.PLAIN_CHUNK_SIZE;
@@ -33,11 +32,11 @@ public class PornDownloader {
     private static final Gson GSON = new Gson();
     private URI uri;
     private final File toWriteFile;
-    private HttpClient client;
+    private PornRequestProvider requestProvider;
 
-    public PornDownloader(HttpClient client, URI uri, String filename) {
+    public PornDownloader(PornRequestProvider provider, URI uri, String filename) {
         this.uri = uri;
-        this.client = client;
+        this.requestProvider = provider;
         String encryptedFileName = DigestUtils.sha256(filename);
         this.toWriteFile = new File(FileUtils.getPvDownloadsPath() + (File.separatorChar + encryptedFileName));
     }
@@ -50,12 +49,12 @@ public class PornDownloader {
         this.uri = uri;
     }
 
-    public HttpClient getClient() {
-        return client;
+    public PornRequestProvider getRequestProvider() {
+        return requestProvider;
     }
 
-    public void setClient(HttpClient client) {
-        this.client = client;
+    public void setRequestProvider(PornRequestProvider requestProvider) {
+        this.requestProvider = requestProvider;
     }
 
     public File getToWriteFile() {
@@ -99,18 +98,7 @@ public class PornDownloader {
 
     private void loadAndSaveVideoChunks(PVVFWriter writer, CryptoEngine engine) {
         try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                    .GET()
-                    .build();
-
-            HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            if (response.statusCode() != 200) {
-                throw new RuntimeException("Illegal status code: " + response.statusCode());
-            }
-
-            try (InputStream readStream = response.body()) {
+            try (InputStream readStream = requestProvider.requestStream(PornRequest.get(uri.toString()))) {
                 byte[] chunkBuffer = new byte[PLAIN_CHUNK_SIZE];
                 long totalReaded = 0;
                 int readed;

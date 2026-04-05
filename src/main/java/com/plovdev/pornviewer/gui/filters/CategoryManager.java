@@ -4,6 +4,7 @@ import com.plovdev.pornviewer.databases.UserPreferences;
 import com.plovdev.pornviewer.events.listeners.PornUpdateListener;
 import com.plovdev.pornviewer.httpquering.*;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
+import com.plovdev.pornviewer.models.Category;
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.collections.FXCollections;
