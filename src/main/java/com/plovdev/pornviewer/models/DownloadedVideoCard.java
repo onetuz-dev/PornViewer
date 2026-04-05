@@ -20,6 +20,7 @@ public class DownloadedVideoCard extends VideoCard {
     protected String path;
     protected String size;
     private String date;
+    private String description;
     protected boolean isSelf = false;
 
     public boolean isSelf() {
@@ -42,6 +43,14 @@ public class DownloadedVideoCard extends VideoCard {
     protected Runnable deleteRun;
     public DownloadedVideoCard(Pane component) {
         pane = component;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Runnable getDeleteRun() {
@@ -108,9 +117,19 @@ public class DownloadedVideoCard extends VideoCard {
         title.getStyleClass().add("video-title-download");
         title.setMaxWidth(800);
         title.setWrapText(true);
+
+        Hyperlink descr = new Hyperlink(description);
+        descr.getStyleClass().add("video-descr-download");
+        descr.setMaxWidth(1000);
+        descr.setWrapText(true);
+
         AnchorPane.setTopAnchor(title,10.0);
         AnchorPane.setLeftAnchor(title, 120.0);
         anchorPane.getChildren().add(title);
+
+        AnchorPane.setTopAnchor(descr,20.0);
+        AnchorPane.setLeftAnchor(descr, 120.0);
+        anchorPane.getChildren().add(descr);
 
         Label durLabel = new Label(duration);
         durLabel.getStyleClass().add("marker-download");

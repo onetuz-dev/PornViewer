@@ -1,12 +1,13 @@
 package com.plovdev.pornviewer.gui.panes;
 
-import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoReader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFParser;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
 import com.plovdev.pornviewer.events.listeners.EventListener;
 import com.plovdev.pornviewer.events.listeners.FileListener;
 import com.plovdev.pornviewer.gui.filters.FilterBox;
 import com.plovdev.pornviewer.gui.video.DurationUtils;
 import com.plovdev.pornviewer.models.DownloadedVideoCard;
+import com.plovdev.pornviewer.models.DownloadedVideoInfo;
 import com.plovdev.pornviewer.models.DownloadingVideoCard;
 import com.plovdev.pornviewer.models.VideoCard;
 import com.plovdev.pornviewer.utility.LauncherHelper;
@@ -26,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -150,19 +150,11 @@ public class DownloadsPane extends AnchorPane {
 
     private Runnable getParseTask(FlowPane pane) {
         return () -> {
-            try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile).filter(p -> {
-                try {
-                    VideoReader.readMetadata(p.toFile());
-                    return true;
-                } catch (Exception e) {
-                    return false;
-                }
-            })) {
+            try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile).filter(PVVFParser::isPVVFFile)) {
                 List<Path> paths = stream.toList();
                 List<DownloadedVideoCard> cards = paths.stream().map(p -> {
                     DownloadedVideoCard card = new DownloadedVideoCard(pane);
                     File file = p.toFile();
-
                     try {
                         BasicFileAttributes attributes = Files.readAttributes(p, BasicFileAttributes.class);
                         FileTime time = attributes.creationTime();
@@ -171,7 +163,6 @@ public class DownloadsPane extends AnchorPane {
                         card.setTitle(p.getFileName().toString());
                         log.info("Title: {}, file: {}", card.getTitle(), p.getFileName().toString());
                         card.setPath(file.toURI().toString());
-
                         card.setDeleteRun(() -> {
                             isSelf = card.isSelf();
                             try {
@@ -191,10 +182,11 @@ public class DownloadsPane extends AnchorPane {
                         card.setSize(format.format(size));
 
                         try {
-                            VideoMetadata metadata = VideoReader.readMetadata(file);
-                            card.setTitle(metadata.getOriginalName());
-                            card.setDuration(DurationUtils.getVideoDuration(metadata.getTotalDuration()));
-                        } catch (IOException e) {
+                            DownloadedVideoInfo videoInfo = PVVFVideoReader.readInfo(file);
+                            card.setTitle(videoInfo.getTitle());
+                            card.setDuration(DurationUtils.getVideoDuration(videoInfo.getTotalDuration()));
+                            card.setDescription(videoInfo.getDescription());
+                        } catch (Exception e) {
                             log.error("Error read metadata: {}", e.getMessage());
                         }
                     } catch (Exception e) {

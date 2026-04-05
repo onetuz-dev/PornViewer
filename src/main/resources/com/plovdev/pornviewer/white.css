@@ -259,6 +259,12 @@
     -fx-border-width: 0;
 }
 
+.video-descr-download {
+    -fx-font-family: "Arial";
+    -fx-text-fill: rgb(240,150,0);
+    -fx-font-size: 1.7em;
+}
+
 .porn-downloading-bar {
     -fx-background-color: transparent;
     -fx-padding: 0;
