@@ -285,8 +285,8 @@ public class FavoritePane extends AnchorPane {
                         return;
                     }
                     pane.getChildren().remove(video);
+                    groups.computeIfAbsent(videoGroup, s -> new CopyOnWriteArrayList<>()).remove(video);
                 }
-                groups.computeIfAbsent(videoGroup, s -> new CopyOnWriteArrayList<>()).remove(video);
 
                 log.info("Dropped a new video: {}", videoId);
                 FavoriteVideos.update("mark", group, videoId);

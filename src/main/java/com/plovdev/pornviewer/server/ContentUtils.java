@@ -1,6 +1,5 @@
 package com.plovdev.pornviewer.server;
 
-import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
@@ -19,14 +18,16 @@ import java.util.Map;
 public class ContentUtils {
     private static final Logger log = LoggerFactory.getLogger(ContentUtils.class);
 
-    public static void sendFileRange(HttpExchange exchange, Chunk chunk, File file, boolean needDecrypt) throws Exception {
+    public static void sendFileRange(HttpExchange exchange, Chunk chunk, File file, boolean needDecrypt, VideoRequestSet set) throws Exception {
         long start = chunk.getStart();
         long end = chunk.getEnd();
 
-        long metadataSize = 0;
-        EncryptedVideo video = PVVFVideoReader.readVideo(file);
+        EncryptedVideo video = set.getEncryptedVideo();
+
         VideoHeader header = video.getVideoHeader();
         VideoMetadata metadata = video.getVideoMetadata();
+
+        long metadataSize = metadata.metadataSize();
 
         // 2. Видео начинается после 42-байтового заголовка
         long videoStart = VideoHeader.HEADER_SIZE;
@@ -50,19 +51,20 @@ public class ContentUtils {
             realEnd = file.length() - 1;
         }
         long contentLength = realEnd - realStart + 1;
+        long realContentSize = header.plainVideoSize();
 
-        log.info("Sending range: client {}-{}, real {}-{}, videoLength={}, metadataSize={}", start, end, realStart, realEnd, encVideoLength, metadataSize);
+        log.info("Sending range: client {}-{}, real {}-{}, videoLength={}, metadataSize={}, contentLength: {}", start, end, realStart, realEnd, encVideoLength, metadataSize, contentLength);
 
         exchange.getResponseHeaders().set("Content-Type", "video/mp4");
         exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
         exchange.getResponseHeaders().set("Connection", "keep-alive");
         exchange.getResponseHeaders().set("Keep-Alive", "timeout=600");
-        exchange.getResponseHeaders().set("Content-Range", String.format("bytes %d-%d/%d", start, end, contentLength));
+        exchange.getResponseHeaders().set("Content-Range", String.format("bytes %d-%d/%d", start, end, realContentSize));
         exchange.sendResponseHeaders(206, contentLength);
 
-        try (OutputStream os = exchange.getResponseBody()) {
+        try (BufferedOutputStream os = new BufferedOutputStream(exchange.getResponseBody())) {
             if (needDecrypt) {
-                sendDecryptedRange(file, video, realStart, contentLength, os);
+                sendDecryptedRange(file, video, start, contentLength, os, set);
             } else {
                 sendPlainRange(file, realStart, contentLength, os);
             }
@@ -84,8 +86,8 @@ public class ContentUtils {
         }
     }
 
-    private static void sendDecryptedRange(File file, EncryptedVideo video, long startInFile, long length, OutputStream os) {
-        ServerDecryptedStreamer streamer = new ServerDecryptedStreamer(file,video,  startInFile, length);
+    private static void sendDecryptedRange(File file, EncryptedVideo video, long startInFile, long length, BufferedOutputStream os, VideoRequestSet set) {
+        ServerDecryptedStreamer streamer = new ServerDecryptedStreamer(file,video,  startInFile, length, set);
         streamer.transferToOutput(os);
     }
 

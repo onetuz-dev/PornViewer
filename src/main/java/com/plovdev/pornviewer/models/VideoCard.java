@@ -5,6 +5,7 @@ import com.plovdev.pornviewer.events.listeners.FavoriteListener;
 import com.plovdev.pornviewer.gui.video.VideoPlayerPane;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
+import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -25,9 +26,13 @@ import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VideoCard extends PornCard {
     private static final Logger log = LoggerFactory.getLogger(VideoCard.class);
+    private static final ExecutorService previewLoader = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+
     protected String duration;
     protected int views;
     protected String rating;
@@ -122,19 +127,6 @@ public class VideoCard extends PornCard {
             StackPane mainContainer = new StackPane();
             mainContainer.setMaxWidth(400);
 
-            Image image;
-            if (pic.endsWith(".webp")) {
-                image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(handler.getBytes(pic))), null);
-            } else {
-                image = new Image(pic);
-            }
-            ImageView view = new ImageView(image);
-            view.setSmooth(true);
-            view.getStyleClass().add("video-preview");
-            view.setFitWidth(420);
-            view.setFitHeight(250);
-            view.setPreserveRatio(true);
-
             Label label = new Label(String.valueOf(views));
             label.getStyleClass().add("marker");
 
@@ -154,8 +146,29 @@ public class VideoCard extends PornCard {
 
             HBox hBox = new HBox(10, titleLabel, rating);
             hBox.getStyleClass().add("title-box");
-            VBox box = new VBox(10, view, hBox);
+            VBox box = new VBox(10, hBox);
             box.getStyleClass().add("trailer");
+
+            previewLoader.execute(() -> {
+                try {
+                    Image image;
+                    if (pic.endsWith(".webp")) {
+                        image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(handler.getBytes(pic))), null);
+                    } else {
+                        image = new Image(pic);
+                    }
+                    ImageView view = new ImageView(image);
+                    view.setSmooth(true);
+                    view.getStyleClass().add("video-preview");
+                    view.setFitWidth(420);
+                    view.setFitHeight(250);
+                    view.setPreserveRatio(true);
+
+                    Platform.runLater(() -> box.getChildren().addFirst(view));
+                } catch (Exception e) {
+                    log.error("Error to load preview: ", e);
+                }
+            });
 
             // Панель с дополнительной информацией (показывается при наведении)
             Region region = new Region();

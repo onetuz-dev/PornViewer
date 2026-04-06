@@ -21,6 +21,14 @@ public class PVVFVideoReader {
         }
     }
 
+    public static VideoMetadata readMetadata(File file) {
+        try (PVVFParser pvvfParser = new PVVFParser(file)) {
+            return pvvfParser.collectEncryptedVideo().getVideoMetadata();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static EncryptedVideo readVideo(File file) {
         try (PVVFParser pvvfParser = new PVVFParser(file)) {
             return pvvfParser.collectEncryptedVideo();

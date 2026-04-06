@@ -3,23 +3,28 @@ package com.plovdev.pornviewer.server.decryptionimpl;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoChunkReader;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
+import com.plovdev.pornviewer.server.VideoRequestSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.OutputStream;
+import java.io.IOException;
 
 public class ServerDecryptedStreamer {
+    private static final Logger log = LoggerFactory.getLogger(ServerDecryptedStreamer.class);
     private final File file;
     private final long startPosition;
     private final long length;
     private final EncryptedVideo video;
     private final VideoChunkReader chunkReader;
 
-    public ServerDecryptedStreamer(File file, EncryptedVideo video, long startInFile, long length) {
+    public ServerDecryptedStreamer(File file, EncryptedVideo video, long startInFile, long length, VideoRequestSet set) {
         this.file = file;
         this.startPosition = startInFile;
         this.length = length;
         this.video = video;
-        chunkReader = new VideoChunkReader(file, video.getVideoHeader().baseNonce());
+        chunkReader = new VideoChunkReader(file, set.getCryptoEngine());
     }
 
     public File getFile() {
@@ -42,28 +47,44 @@ public class ServerDecryptedStreamer {
         return chunkReader;
     }
 
-    public void transferToOutput(OutputStream stream) {
+    public void transferToOutput(BufferedOutputStream stream) {
         try {
-            // Определяем нужные чанки
-            int startChunk = (int) (startPosition / VideoChunk.PLAIN_CHUNK_SIZE);
-            int endChunk = (int) ((startPosition + length - 1) / VideoChunk.PLAIN_CHUNK_SIZE);
-            int offsetInStartChunk = (int) (startPosition % VideoChunk.PLAIN_CHUNK_SIZE);
-            long remaining = length;
+            // 1. Определяем логические индексы чанков по 128КБ
+            long startChunk = startPosition / VideoChunk.PLAIN_CHUNK_SIZE;
+            long endChunk = (startPosition + length - 1) / VideoChunk.PLAIN_CHUNK_SIZE;
 
-            for (int chunkIdx = startChunk; chunkIdx <= endChunk && remaining > 0; chunkIdx++) {
-                // Читаем и расшифровываем чанк
-                byte[] plainChunk = chunkReader.readEncryptedChunk(chunkIdx);
-                // Вычисляем границы в этом чанке
-                int start = (chunkIdx == startChunk) ? offsetInStartChunk : 0;
-                int toWrite = (int) Math.min(VideoChunk.PLAIN_CHUNK_SIZE - start, remaining);
-                // Отправляем клиенту
-                stream.write(plainChunk, start, toWrite);
-                remaining -= toWrite;
+            // 2. Смещение внутри ПЕРВОГО запрошенного чанка
+            long offsetInStartChunk = startPosition % VideoChunk.PLAIN_CHUNK_SIZE;
+
+            long remaining = length; // Сколько байт Плеер ЖДЕТ (contentLength)
+
+            for (long i = startChunk; i <= endChunk && remaining > 0; i++) {
+                // Читаем чанк. PVVFParser сам найдет его в файле: 42 + i * (128KB + 16B)
+                byte[] plainChunk = chunkReader.readEncryptedChunk(i);
+
+                // Если это первый чанк в запросе — начинаем с offset, иначе с 0
+                int start = (i == startChunk) ? (int) offsetInStartChunk : 0;
+
+                // Сколько байт реально осталось в этом чанке?
+                // (Важно: plainChunk может быть меньше 128КБ, если это самый конец видео)
+                int availableInChunk = plainChunk.length - start;
+
+                // Пишем либо всё что есть в чанке, либо столько, сколько осталось до конца запроса
+                int toWrite = (int) Math.min(availableInChunk, remaining);
+
+                if (toWrite > 0) {
+                    stream.write(plainChunk, start, toWrite);
+                    remaining -= toWrite;
+                }
             }
-
+            if (remaining > 0) {
+                log.warn("Underflow! Still need to write {} bytes", remaining);
+            }
             stream.flush();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to stream decrypted video", e);
+        } catch (IOException e) {
+            if (!e.getMessage().contains("Broken pipe")) {
+                log.error("Streaming error: {}", e.getMessage());
+            }
         }
     }
 }

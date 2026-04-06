@@ -115,37 +115,36 @@ public class DownloadedVideoCard extends VideoCard {
             playerPane.show();
         });
         title.getStyleClass().add("video-title-download");
-        title.setMaxWidth(800);
-        title.setWrapText(true);
+        title.setMaxWidth(1000);
 
-        Hyperlink descr = new Hyperlink(description);
+        Label descr = new Label(description);
         descr.getStyleClass().add("video-descr-download");
         descr.setMaxWidth(1000);
         descr.setWrapText(true);
 
-        AnchorPane.setTopAnchor(title,10.0);
-        AnchorPane.setLeftAnchor(title, 120.0);
+        AnchorPane.setTopAnchor(title,0.0);
+        AnchorPane.setLeftAnchor(title, 110.0);
         anchorPane.getChildren().add(title);
 
-        AnchorPane.setTopAnchor(descr,20.0);
-        AnchorPane.setLeftAnchor(descr, 120.0);
+        AnchorPane.setTopAnchor(descr,40.0);
+        AnchorPane.setLeftAnchor(descr, 130.0);
         anchorPane.getChildren().add(descr);
 
         Label durLabel = new Label(duration);
         durLabel.getStyleClass().add("marker-download");
-        AnchorPane.setBottomAnchor(durLabel,10.0);
+        AnchorPane.setBottomAnchor(durLabel,5.0);
         AnchorPane.setLeftAnchor(durLabel, 120.0);
         anchorPane.getChildren().add(durLabel);
 
         Label dateLabel = new Label(getDate());
         dateLabel.getStyleClass().add("marker-download");
-        AnchorPane.setTopAnchor(dateLabel,10.0);
+        AnchorPane.setTopAnchor(dateLabel,5.0);
         AnchorPane.setRightAnchor(dateLabel, 40.0);
         anchorPane.getChildren().add(dateLabel);
 
         Label sizeLabel = new Label(size + "MB");
         sizeLabel.getStyleClass().add("marker-download");
-        AnchorPane.setBottomAnchor(sizeLabel,10.0);
+        AnchorPane.setBottomAnchor(sizeLabel,5.0);
         AnchorPane.setRightAnchor(sizeLabel, 40.0);
         anchorPane.getChildren().add(sizeLabel);
 

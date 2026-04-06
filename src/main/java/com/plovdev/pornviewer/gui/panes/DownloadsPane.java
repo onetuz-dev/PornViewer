@@ -161,7 +161,6 @@ public class DownloadsPane extends AnchorPane {
                         LocalDateTime dateTime = LocalDateTime.ofInstant(time.toInstant(), ZoneId.systemDefault());
                         card.setDate(dateTime.format(createFormatter));
                         card.setTitle(p.getFileName().toString());
-                        log.info("Title: {}, file: {}", card.getTitle(), p.getFileName().toString());
                         card.setPath(file.toURI().toString());
                         card.setDeleteRun(() -> {
                             isSelf = card.isSelf();

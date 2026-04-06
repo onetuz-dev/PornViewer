@@ -15,6 +15,10 @@ public class VideoChunkReader implements AutoCloseable {
         pvvfParser = new PVVFParser(file);
         engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherManager.getPassword().toCharArray(), baseNonce);
     }
+    public VideoChunkReader(File file, CryptoEngine engine) {
+        pvvfParser = new PVVFParser(file);
+        this.engine = engine;
+    }
 
 
     public byte[] readEncryptedChunk(long chunkIndex) {

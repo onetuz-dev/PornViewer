@@ -39,7 +39,11 @@ public class ServerPaths {
     @NotNull
     public String replaceFileToHttpPath(String file) {
         file = file.substring(file.lastIndexOf("/") + 1);
-        return String.format(SERVER_BASE + "/video?file=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), token);
+        String link = String.format(SERVER_BASE + "/video?file=%s&token=%s", URLEncoder.encode(file, StandardCharsets.UTF_8), token);
+        System.out.println(link
+
+        );
+        return link;
     }
     public String getInfoUrl() {
         return String.format(SERVER_BASE + "/info?token=%s", token);

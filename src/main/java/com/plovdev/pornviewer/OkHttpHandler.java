@@ -18,7 +18,7 @@ public class OkHttpHandler {
 
     public void requestPorn() {
         Request request = new Request.Builder()
-                .url("http://5porno365.info")
+                .url("http://5porno365.info/models")
                 .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
                 .header("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")

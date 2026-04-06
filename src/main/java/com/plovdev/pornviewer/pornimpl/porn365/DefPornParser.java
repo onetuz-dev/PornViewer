@@ -1,7 +1,6 @@
 package com.plovdev.pornviewer.pornimpl.porn365;
 
 import com.plovdev.pornviewer.databases.FavoriteVideos;
-import com.plovdev.pornviewer.models.Category;
 import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.httpquering.defimpl.PBPornHandler;
 import com.plovdev.pornviewer.models.*;
@@ -25,11 +24,11 @@ public class DefPornParser implements PornParser {
     public List<VideoCard> getAllVideos(String html) {
         Document doc = Jsoup.parse(html);
         List<VideoCard> cards = new ArrayList<>();
-        try (ExecutorService service = Executors.newFixedThreadPool(10)) {
+        try (ExecutorService service = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<VideoCard>> futures = new ArrayList<>();
 
             Elements elements = doc.select("li.video_block");
-            elements.stream().limit(45).forEach(e -> {
+            elements.forEach(e -> {
                 Future<VideoCard> future = service.submit(() -> (VideoCard) parseVideoBlock(e));
                 futures.add(future);
             });
@@ -51,11 +50,11 @@ public class DefPornParser implements PornParser {
     public List<ModelCard> getAllModels(String html) {
         Document doc = Jsoup.parse(html);
         List<ModelCard> cards = new ArrayList<>();
-        try (ExecutorService service = Executors.newFixedThreadPool(10)) {
+        try (ExecutorService service = Executors.newVirtualThreadPerTaskExecutor()) {
             List<Future<ModelCard>> futures = new ArrayList<>();
 
             Elements elements = doc.select("li.video_block");
-            elements.stream().limit(45).forEach(e -> {
+            elements.forEach(e -> {
                 Future<ModelCard> future = service.submit(() -> (ModelCard) parseVideoBlock(e));
                 futures.add(future);
             });
@@ -142,59 +141,6 @@ public class DefPornParser implements PornParser {
     @Override
     public List<ModelInfo> getModels(String html) {
         Document doc = Jsoup.parse(html);
-
-        List<ModelInfo> cards = new ArrayList<>();
-        try (ExecutorService service = Executors.newFixedThreadPool(20)) {
-            List<Future<ModelInfo>> futures = new ArrayList<>();
-
-            Elements elements = doc.select("div.item_model");
-            elements.stream().limit(45).forEach(e -> {
-                Future<ModelInfo> future = service.submit(() -> parseModelBlock(e));
-                futures.add(future);
-            });
-
-            futures.forEach(f -> {
-                try {
-                    ModelInfo card = f.get();
-                    cards.add(card);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return cards;
-    }
-
-    private ModelInfo parseModelBlock(Element videoElement) {
-        ModelInfo info = new ModelInfo();
-
-        // 2. Ссылка на страницу видео
-        Element link = videoElement.selectFirst("a[href]");
-        info.setUrl(link.attr("abs:href"));
-
-        Element country = link.selectFirst("span[class]");
-        String flag = country.attr("class");
-        info.setCountry(null);
-        if (flag.contains("-")) {
-            flag = flag.substring(flag.lastIndexOf('-') + 1);
-            info.setCountry(flag.toUpperCase());
-        }
-
-        // 3. Ссылка на превью (thumbnail)
-        Element img = videoElement.selectFirst("img");
-        info.setAvatar(img.attr("abs:src"));
-
-        Element videos = videoElement.selectFirst("span.cnt_span");
-        info.setVideos(Integer.parseInt(videos.text()));
-
-        Element nameRu = videoElement.selectFirst(".model_rus_name");
-        info.setRusName(nameRu.text());
-
-        Element nameEn = videoElement.selectFirst(".model_eng_name");
-        info.setEngName(nameEn.text());
-
-        return info;
+        return ModelsParser.parseModels(doc);
     }
 }

@@ -48,6 +48,7 @@ public class ModelCard extends PornCard {
             PBPornHandler handler = new PBPornHandler();
 
             Image image;
+            String pic = modelInfo.getAvatar();
             if (pic.endsWith(".webp")) {
                 image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(handler.getBytes(pic))), null);
             } else {

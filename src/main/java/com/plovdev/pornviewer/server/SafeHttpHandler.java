@@ -1,19 +1,21 @@
 package com.plovdev.pornviewer.server;
 
-import com.plovdev.pornviewer.encryptionsupport.videoparser.VideoMetadata;
-import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoReader;
+import com.plovdev.pornviewer.encryptionsupport.CryptoEngine;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
+import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoHeader;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
+import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.Cipher;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.plovdev.pornviewer.server.ContentUtils.checkFile;
 
@@ -21,6 +23,14 @@ public class SafeHttpHandler implements HttpHandler {
     private static final String HEAD = "HEAD";
     private static final String GET = "GET";
     private static final Logger log = LoggerFactory.getLogger(SafeHttpHandler.class);
+    private static final Map<File, VideoRequestSet> videoRequestsCache = Collections.synchronizedMap(
+            new LinkedHashMap<>(16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<File, VideoRequestSet> eldest) {
+                    return size() > 20;
+                }
+            }
+    );
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -74,8 +84,9 @@ public class SafeHttpHandler implements HttpHandler {
 
             long contentLength;
             try {
-                VideoMetadata metadata = VideoReader.readMetadata(file);
-                contentLength = file.length() - metadata.getTotalMetaSize();
+                VideoRequestSet set = getCachedOrCreateSet(file);
+                VideoHeader header = set.getEncryptedVideo().getVideoHeader();
+                contentLength = header.plainVideoSize();
             } catch (Exception e) {
                 log.debug("No metadata found, sending full file");
                 contentLength = file.length();
@@ -95,8 +106,7 @@ public class SafeHttpHandler implements HttpHandler {
             File file = checkFile(exchange, params);
             log.info("Process GET request. Chunk: {}", chunk);
             String needDecryptParam = params.get("needDecrypt");
-
-            //ContentUtils.sendFileRange(exchange, chunk, file, needDecryptParam == null || Boolean.parseBoolean(needDecryptParam));
+            ContentUtils.sendFileRange(exchange, chunk, file, needDecryptParam == null || Boolean.parseBoolean(needDecryptParam), getCachedOrCreateSet(file));
         } catch (Exception e) {
             log.error("GET processing error: ", e);
         }
@@ -163,5 +173,16 @@ public class SafeHttpHandler implements HttpHandler {
             throw new IllegalArgumentException(String.format("Invalid range: start (%d) > end (%d)", start, end));
         }
         return end;
+    }
+
+    private VideoRequestSet getCachedOrCreateSet(File file) {
+        VideoRequestSet set = videoRequestsCache.get(file);
+        if (set == null) {
+            EncryptedVideo video = PVVFVideoReader.readVideo(file);
+            CryptoEngine engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherManager.getPassword().toCharArray(), video.getVideoHeader().baseNonce());
+            set = new VideoRequestSet(video, engine);
+            videoRequestsCache.put(file, set);
+        }
+        return set;
     }
 }
