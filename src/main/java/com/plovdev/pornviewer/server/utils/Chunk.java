@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.server;
+package com.plovdev.pornviewer.server.utils;
 
 public class Chunk {
     private long start;

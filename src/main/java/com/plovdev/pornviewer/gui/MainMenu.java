@@ -46,7 +46,7 @@ public class MainMenu extends Application {
             System.exit(0);
         });
 
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/white.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/white.css")).toExternalForm());
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.setTitle("PornViewer");

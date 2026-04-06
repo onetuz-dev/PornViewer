@@ -1,7 +1,9 @@
 package com.plovdev.pornviewer.models;
 
+import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
 import com.plovdev.pornviewer.events.FileDownloadingEvent;
 import com.plovdev.pornviewer.events.listeners.FileDownloadingListener;
+import com.plovdev.pornviewer.gui.video.DurationUtils;
 import com.plovdev.pornviewer.utility.DialogShower;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
@@ -21,6 +23,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -34,6 +38,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class DownloadingVideoCard extends DownloadedVideoCard {
+    private static final Logger log = LoggerFactory.getLogger(DownloadingVideoCard.class);
     private final ProgressBar progressBar = new ProgressBar(0.0);
     private final DateTimeFormatter createFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
     private final DoubleProperty progress = new SimpleDoubleProperty(0.0);
@@ -150,11 +155,20 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
                 System.err.println("End");
                 try {
                     ObservableList<Node> nodes = pane.getChildren();
-
                     downloadedVideoCard.setPath(file.toURI().toString());
                     BigDecimal size = new BigDecimal(String.valueOf(file.length())).divide(new BigDecimal("1000000.0"), 10, RoundingMode.HALF_UP);
-                    DecimalFormat format = new DecimalFormat("#0.00");
+                    DecimalFormat format = new DecimalFormat("#0.00MB");
                     downloadedVideoCard.setSize(format.format(size));
+
+                    try {
+                        DownloadedVideoInfo videoInfo = PVVFVideoReader.readInfo(file);
+                        downloadedVideoCard.setTitle(videoInfo.getTitle());
+                        downloadedVideoCard.setDuration(DurationUtils.getVideoDuration(videoInfo.getTotalDuration()));
+                        downloadedVideoCard.setDescription(videoInfo.getDescription());
+                        downloadedVideoCard.setPreview(videoInfo.getPreviewBytes());
+                    } catch (Exception e) {
+                        log.error("Error read metadata: {}", e.getMessage());
+                    }
 
                     Platform.runLater(() -> {
                         downloadedVideoCard.render();

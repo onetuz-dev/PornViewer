@@ -2,6 +2,10 @@ package com.plovdev.pornviewer.server;
 
 import com.plovdev.pornviewer.events.listeners.ServerEventListener;
 import com.plovdev.pornviewer.events.listeners.ServerEventListenerAdapter;
+import com.plovdev.pornviewer.server.handlers.DeepLinkHandler;
+import com.plovdev.pornviewer.server.handlers.SafeHttpHandler;
+import com.plovdev.pornviewer.server.handlers.UtilsHandler;
+import com.plovdev.pornviewer.server.handlers.VideoExportHandler;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
@@ -52,6 +56,8 @@ public class SafeHttpServer {
             server.createContext("/video", new SafeHttpHandler());
             server.createContext("/info", new UtilsHandler());
             server.createContext("/deeplink", new DeepLinkHandler());
+            server.createContext("/handler", new VideoExportHandler());
+
             server.setExecutor(Executors.newCachedThreadPool());
             server.start();
             Thread.sleep(250);

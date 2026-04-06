@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.server;
+package com.plovdev.pornviewer.server.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -112,8 +112,5 @@ public class DeepLinkHandler implements HttpHandler {
         JsonObject info = new JsonObject();
         info.addProperty("notified", true);
         return GSON.toJson(info);
-    }
-    private boolean checkMethod(String method) {
-        return "POST".equals(method);
     }
 }

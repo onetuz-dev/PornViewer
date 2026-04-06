@@ -3,15 +3,6 @@
     -fx-background-color: white;
 }
 
-.sharer {
-    -fx-padding: 20px;
-}
-
-.cancelShare {
-    -fx-width: 100px;
-    -fx-height: 50px;
-}
-
 .porn-tab {
     -fx-background-color: lightgray;
     -fx-background-insets: 0 7px 0 7px;
@@ -93,6 +84,11 @@
     -fx-text-fill: white;
     -fx-font-size: 1.5em;
 }
+.video-title:focused {
+    -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-border: none;
+}
 
 .main-pane {
     -fx-background-color: white;
@@ -140,6 +136,8 @@
 }
 .notify-item-label:focused {
     -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-border: none;
 }
 
 .top-nots {
@@ -257,6 +255,8 @@
 }
 .video-title-download:focused {
     -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-border: none;
 }
 
 .video-descr-download {
@@ -400,7 +400,14 @@
     -fx-background-color: rgb(250,250,250);
 }
 
-
+.options {
+    -fx-background-color: transparent;
+    -fx-font-family: "Arial";
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+    -fx-color: black;
+    -fx-font-size: 1.5em;
+}
 
 .add-favorite-group {
     -fx-background-color: transparent;
@@ -445,9 +452,11 @@
     -fx-border-color: transparent;
 }
 .scroll-pane:focused {
-    -fx-border-color: transparent;
     -fx-border-width: 0;
+    -fx-border-color: transparent;
+    -fx-border: none;
 }
+
 .groups-box {
     -fx-background-color: white;
 }

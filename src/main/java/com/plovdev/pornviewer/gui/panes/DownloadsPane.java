@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -144,15 +145,23 @@ public class DownloadsPane extends AnchorPane {
     }
 
     private void runPornParsing(FlowPane pane) {
-        Thread thread = new Thread(getParseTask(pane), "Parser");
-        thread.start();
+        Thread.startVirtualThread(getParseTask(pane));
     }
 
     private Runnable getParseTask(FlowPane pane) {
         return () -> {
-            try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath()).filter(Files::isRegularFile).filter(PVVFParser::isPVVFFile)) {
+            try (Stream<Path> stream = Files.list(FileUtils.getPvDownloadsPath())
+                    .filter(Files::isRegularFile).filter(PVVFParser::isPVVFFile)
+                    .sorted((p1, p2) -> {
+                        try {
+                            return Files.getLastModifiedTime(p2).compareTo(Files.getLastModifiedTime(p1));
+                        } catch (IOException e) {
+                            return 0;
+                        }
+                    })) {
+
                 List<Path> paths = stream.toList();
-                List<DownloadedVideoCard> cards = paths.stream().map(p -> {
+                List<DownloadedVideoCard> cards = paths.parallelStream().map(p -> {
                     DownloadedVideoCard card = new DownloadedVideoCard(pane);
                     File file = p.toFile();
                     try {
@@ -177,7 +186,7 @@ public class DownloadsPane extends AnchorPane {
                         });
 
                         BigDecimal size = new BigDecimal(String.valueOf(file.length())).divide(new BigDecimal("1000000.0"), 10, RoundingMode.HALF_UP);
-                        DecimalFormat format = new DecimalFormat("#0.00");
+                        DecimalFormat format = new DecimalFormat("#0.00MB");
                         card.setSize(format.format(size));
 
                         try {
@@ -185,6 +194,7 @@ public class DownloadsPane extends AnchorPane {
                             card.setTitle(videoInfo.getTitle());
                             card.setDuration(DurationUtils.getVideoDuration(videoInfo.getTotalDuration()));
                             card.setDescription(videoInfo.getDescription());
+                            card.setPreview(videoInfo.getPreviewBytes());
                         } catch (Exception e) {
                             log.error("Error read metadata: {}", e.getMessage());
                         }
@@ -195,7 +205,6 @@ public class DownloadsPane extends AnchorPane {
                 }).toList();
                 originNots.clear();
                 Platform.runLater(() -> pane.getChildren().clear());
-
                 cards.forEach(e -> {
                     e.render();
                     originNots.add(e);

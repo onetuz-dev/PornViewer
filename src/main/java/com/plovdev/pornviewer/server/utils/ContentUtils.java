@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.server;
+package com.plovdev.pornviewer.server.utils;
 
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
@@ -86,7 +86,7 @@ public class ContentUtils {
         }
     }
 
-    private static void sendDecryptedRange(File file, EncryptedVideo video, long startInFile, long length, BufferedOutputStream os, VideoRequestSet set) {
+    public static void sendDecryptedRange(File file, EncryptedVideo video, long startInFile, long length, BufferedOutputStream os, VideoRequestSet set) {
         ServerDecryptedStreamer streamer = new ServerDecryptedStreamer(file,video,  startInFile, length, set);
         streamer.transferToOutput(os);
     }

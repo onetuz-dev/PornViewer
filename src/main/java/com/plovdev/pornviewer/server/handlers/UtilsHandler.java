@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.server;
+package com.plovdev.pornviewer.server.handlers;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

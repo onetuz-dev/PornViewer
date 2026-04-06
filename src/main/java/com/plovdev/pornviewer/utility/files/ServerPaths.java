@@ -48,6 +48,9 @@ public class ServerPaths {
     public String getInfoUrl() {
         return String.format(SERVER_BASE + "/info?token=%s", token);
     }
+    public String getExportUrl() {
+        return String.format(SERVER_BASE + "/export?token=%s", token);
+    }
     public String getDeeplinkUrl() {
         return String.format(SERVER_BASE + "/deeplink?token=%s", token);
     }

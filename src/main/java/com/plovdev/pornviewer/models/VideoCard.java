@@ -31,7 +31,7 @@ import java.util.concurrent.Executors;
 
 public class VideoCard extends PornCard {
     private static final Logger log = LoggerFactory.getLogger(VideoCard.class);
-    private static final ExecutorService previewLoader = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+    protected static final ExecutorService previewLoader = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
     protected String duration;
     protected int views;
@@ -203,7 +203,6 @@ public class VideoCard extends PornCard {
                 showContextMenu(download, e.getScreenX(), e.getScreenY());
             });
 
-
             VBox vBox = new VBox(new HBox(r1, new VBox(10, fav, download)), r, new HBox(label, region, dur));
             vBox.setPadding(new Insets(10));
             HBox.setHgrow(vBox, Priority.ALWAYS);
@@ -236,10 +235,14 @@ public class VideoCard extends PornCard {
 
     private void showContextMenu(ImageView node, double x, double y) {
         ContextMenu menu = new ContextMenu();
+        menu.getStyleClass().add("options");
         for (String str : info.getUrls().keySet()) {
             menu.getItems().add(getLoader(str));
         }
         menu.show(node, x, y);
+        if (menu.getScene() != null) {
+            menu.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/context-menu.css")).toExternalForm());
+        }
     }
 
     protected MenuItem getLoader(String qual) {

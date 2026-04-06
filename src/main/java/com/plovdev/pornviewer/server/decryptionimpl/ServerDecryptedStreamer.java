@@ -3,7 +3,7 @@ package com.plovdev.pornviewer.server.decryptionimpl;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.read.VideoChunkReader;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
-import com.plovdev.pornviewer.server.VideoRequestSet;
+import com.plovdev.pornviewer.server.utils.VideoRequestSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

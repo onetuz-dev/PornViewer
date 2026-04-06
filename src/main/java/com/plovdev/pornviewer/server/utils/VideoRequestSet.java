@@ -1,4 +1,4 @@
-package com.plovdev.pornviewer.server;
+package com.plovdev.pornviewer.server.utils;
 
 import com.plovdev.pornviewer.encryptionsupport.CryptoEngine;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;

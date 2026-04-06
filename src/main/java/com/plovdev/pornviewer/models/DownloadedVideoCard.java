@@ -1,18 +1,21 @@
 package com.plovdev.pornviewer.models;
 
+import com.plovdev.pornviewer.gui.toast.Filer;
 import com.plovdev.pornviewer.gui.video.DownloadedVideoPlayerPane;
-import com.plovdev.pornviewer.utility.DialogShower;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.Label;
+import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 import java.util.Objects;
 
 public class DownloadedVideoCard extends VideoCard {
@@ -21,6 +24,7 @@ public class DownloadedVideoCard extends VideoCard {
     protected String size;
     private String date;
     private String description;
+    private byte[] preview;
     protected boolean isSelf = false;
 
     public boolean isSelf() {
@@ -39,8 +43,17 @@ public class DownloadedVideoCard extends VideoCard {
         this.date = date;
     }
 
+    public byte[] getPreview() {
+        return preview;
+    }
+
+    public void setPreview(byte[] preview) {
+        this.preview = preview;
+    }
+
     protected final Pane pane;
     protected Runnable deleteRun;
+
     public DownloadedVideoCard(Pane component) {
         pane = component;
     }
@@ -76,6 +89,7 @@ public class DownloadedVideoCard extends VideoCard {
     public String getPath() {
         return ServerPaths.getInstance().replaceFileToHttpPath(path);
     }
+
     public String getOriginalPath() {
         return path;
     }
@@ -91,84 +105,104 @@ public class DownloadedVideoCard extends VideoCard {
 
     @Override
     public void render() {
-        AnchorPane anchorPane = new AnchorPane();
+        try {
+            StackPane mainContainer = new StackPane();
+            mainContainer.setMaxWidth(400);
 
-        minWidthProperty().bind(pane.widthProperty().divide(1.03));
-        prefWidthProperty().bind(pane.widthProperty().divide(1.03));
-        maxWidthProperty().bind(pane.widthProperty().divide(1.03));
-        anchorPane.minWidthProperty().bind(pane.widthProperty().divide(1.03));
-        anchorPane.prefWidthProperty().bind(pane.widthProperty().divide(1.03));
-        anchorPane.maxWidthProperty().bind(pane.widthProperty().divide(1.03));
+            Label sizeLabel = new Label(String.valueOf(size));
+            sizeLabel.getStyleClass().add("marker");
 
-        ImageView view = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/plovdev/pornviewer/download.png"))));
-        view.setFitHeight(70);
-        view.setFitWidth(70);
-        view.setPreserveRatio(true);
-        AnchorPane.setLeftAnchor(view, 20.0);
-        AnchorPane.setBottomAnchor(view, 5.0);
-        AnchorPane.setTopAnchor(view, 25.0);
-        anchorPane.getChildren().add(view);
+            Hyperlink titleLabel = new Hyperlink(title);
+            titleLabel.setOnAction(e -> {
+                DownloadedVideoPlayerPane playerPane = new DownloadedVideoPlayerPane(this);
+                playerPane.show();
+            });
+            titleLabel.getStyleClass().add("video-title");
+            titleLabel.setMaxWidth(400);
+            titleLabel.setMinHeight(50);
 
-        Hyperlink title = new Hyperlink(getTitle());
-        title.setOnAction(e -> {
-            DownloadedVideoPlayerPane playerPane = new DownloadedVideoPlayerPane(this);
-            playerPane.show();
-        });
-        title.getStyleClass().add("video-title-download");
-        title.setMaxWidth(1000);
+            Label dur = new Label(duration);
+            dur.getStyleClass().add("marker");
 
-        Label descr = new Label(description);
-        descr.getStyleClass().add("video-descr-download");
-        descr.setMaxWidth(1000);
-        descr.setWrapText(true);
+            VBox box = new VBox(titleLabel);
+            box.getStyleClass().add("trailer");
 
-        AnchorPane.setTopAnchor(title,0.0);
-        AnchorPane.setLeftAnchor(title, 110.0);
-        anchorPane.getChildren().add(title);
-
-        AnchorPane.setTopAnchor(descr,40.0);
-        AnchorPane.setLeftAnchor(descr, 130.0);
-        anchorPane.getChildren().add(descr);
-
-        Label durLabel = new Label(duration);
-        durLabel.getStyleClass().add("marker-download");
-        AnchorPane.setBottomAnchor(durLabel,5.0);
-        AnchorPane.setLeftAnchor(durLabel, 120.0);
-        anchorPane.getChildren().add(durLabel);
-
-        Label dateLabel = new Label(getDate());
-        dateLabel.getStyleClass().add("marker-download");
-        AnchorPane.setTopAnchor(dateLabel,5.0);
-        AnchorPane.setRightAnchor(dateLabel, 40.0);
-        anchorPane.getChildren().add(dateLabel);
-
-        Label sizeLabel = new Label(size + "MB");
-        sizeLabel.getStyleClass().add("marker-download");
-        AnchorPane.setBottomAnchor(sizeLabel,5.0);
-        AnchorPane.setRightAnchor(sizeLabel, 40.0);
-        anchorPane.getChildren().add(sizeLabel);
-
-        Label delete = new Label("×");
-        delete.getStyleClass().add("delete-label");
-        delete.setOnMousePressed(e -> DialogShower.showConfirm("Удалить видео?", deleteRun));
-        AnchorPane.setBottomAnchor(delete,45.0);
-        AnchorPane.setTopAnchor(delete, 45.0);
-        AnchorPane.setRightAnchor(delete, 10.0);
-        anchorPane.getChildren().add(delete);
-
-        getStyleClass().add("download-video-card");
-
-        if (path.endsWith(".mp4")) {
             try {
-                MediaPlayer player = new MediaPlayer(new Media(path));
-                player.setOnReady(() -> durLabel.setText(getVideoDuration(player.getTotalDuration())));
-                durLabel.setText(getVideoDuration(player.getTotalDuration()));
+                Image image = SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(preview)), null);
+                renderImage(image, box);
             } catch (Exception e) {
-                log.error("Error to show file info: ", e);
+                log.error("Error to load preview: ", e);
+                Image image = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/com/plovdev/pornviewer/download.png")));
+                renderImage(image, box);
             }
-        }
 
-        getChildren().add(anchorPane);
+            Region region = getHRegion();
+            Region r = getVRegion();
+            Region r2 = getVRegion();
+            Region r1 = getHRegion();
+
+            Label dateLabel = new Label(date);
+            dateLabel.getStyleClass().add("marker");
+
+            Button actions = new Button("|||");
+            actions.getStyleClass().add("options");
+            fillActionsBox(actions);
+
+            VBox vBox = new VBox(new HBox(dateLabel, r1, actions), r, new HBox(sizeLabel, region, dur));
+            vBox.setPadding(new Insets(10));
+            HBox.setHgrow(vBox, Priority.ALWAYS);
+
+            HBox infoOverlay = new HBox(vBox);
+            infoOverlay.setVisible(false);
+            infoOverlay.getStyleClass().add("video-hover");
+            StackPane.setAlignment(infoOverlay, Pos.BOTTOM_CENTER);
+            StackPane.setMargin(infoOverlay, new Insets(0, 0, 50, 0));
+            mainContainer.getChildren().addAll(box, infoOverlay);
+
+            mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
+            mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
+            getChildren().add(mainContainer);
+        } catch (Exception e) {
+            log.error("Rendering error: ", e);
+        }
+    }
+
+    private void renderImage(Image image, VBox box) {
+        ImageView view = new ImageView(image);
+        view.setSmooth(true);
+        view.getStyleClass().add("video-preview");
+        view.setFitWidth(420);
+        view.setFitHeight(250);
+        view.setPreserveRatio(true);
+        Platform.runLater(() -> box.getChildren().addFirst(view));
+    }
+
+    private void fillActionsBox(Button actions) {
+        actions.setOnMousePressed(e -> {
+            ContextMenu menu = new ContextMenu();
+            menu.getStyleClass().add("options");
+            fillActinsMenu(menu);
+            menu.show(actions, e.getScreenX(), e.getScreenY());
+            if (menu.getScene() != null) {
+                menu.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/context-menu.css")).toExternalForm());
+            }
+        });
+
+    }
+
+    private void fillActinsMenu(ContextMenu menu) {
+        MenuItem delete = new MenuItem("Удалить");
+        delete.setOnAction(a -> deleteRun.run());
+
+        MenuItem export = new MenuItem("Экспортировать");
+        export.setOnAction(a -> {
+            Filer filer = new Filer();
+            if (filer.getPath() != null) {
+                handler.executePost(ServerPaths.getInstance().getInfoUrl(), filer.getPath());
+            }
+        });
+
+        menu.getItems().addAll(delete, export);
     }
 
     private Region getVRegion() {
@@ -176,6 +210,7 @@ public class DownloadedVideoCard extends VideoCard {
         VBox.setVgrow(region, Priority.ALWAYS);
         return region;
     }
+
     private Region getHRegion() {
         Region region = new Region();
         HBox.setHgrow(region, Priority.ALWAYS);

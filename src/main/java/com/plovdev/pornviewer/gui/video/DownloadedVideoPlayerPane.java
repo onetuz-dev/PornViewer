@@ -14,7 +14,7 @@ public class DownloadedVideoPlayerPane extends Stage {
         VideoPlyer plyer = new VideoPlyer(media, card, this);
 
         Scene scene = new Scene(plyer, 1000, 600);
-        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/white.css")).toExternalForm());
+        scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/white.css")).toExternalForm());
 
         setScene(scene);
         setTitle(card.getTitle());
