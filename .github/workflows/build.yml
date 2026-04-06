@@ -29,17 +29,20 @@ jobs:
       - name: List target directory
         run: dir target
 
+      - name: List input-pv directory
+        run: dir input-pv
+
       - name: Create installer with jpackage
         run: |
           jpackage `
             --type exe `
-            --input input-pv/ `
+            --input input-pv `
             --name PornViewer `
             --main-jar PornViewer.jar `
             --main-class com.plovdev.pornviewer.Launcher `
-            --dest installer/ `
-            --resource-dir resources-pv/ `
-            --icon PornViewer.ico
+            --dest installer `
+            --resource-dir resources-pv `
+            --icon PornViewer.ico `
             --license-file files/LICENSE.txt `
             --app-version "1.7.5" `
             --vendor "PlovDev" `
