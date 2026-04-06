@@ -42,7 +42,7 @@ jobs:
             --main-class com.plovdev.pornviewer.Launcher `
             --dest installer `
             --resource-dir resources-pv `
-            --icon PornViewer.ico `
+            --icon files/PornViewer.ico `
             --license-file files/LICENSE.txt `
             --app-version "1.7.5" `
             --vendor "PlovDev" `
