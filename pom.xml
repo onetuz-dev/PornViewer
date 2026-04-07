@@ -89,6 +89,7 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -112,18 +113,13 @@
                             <!-- Исключаем ненужные библиотеки из финального JAR -->
                             <artifactSet>
                                 <excludes>
-                                    <!-- Аннотации для статического анализа (не нужны в рантайме) -->
                                     <exclude>com.google.errorprone:error_prone_annotations</exclude>
                                     <exclude>org.checkerframework:checker-qual</exclude>
                                     <exclude>com.google.code.findbugs:jsr305</exclude>
-                                    <!-- Kotlin common модули (если не используете Kotlin напрямую) -->
-                                    <exclude>org.jetbrains.kotlin:kotlin-stdlib-common</exclude>
-                                    <!-- Дополнительные исключения -->
                                     <exclude>org.intellij.lang.annotations:annotations</exclude>
                                 </excludes>
                             </artifactSet>
 
-                            <!-- Исключаем конфликтующие и ненужные файлы -->
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
@@ -131,7 +127,6 @@
                                         <exclude>META-INF/versions/9/module-info.class</exclude>
                                         <exclude>module-info.class</exclude>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
-                                        <!-- Исключаем GraalVM метаданные из всех JAR -->
                                         <exclude>META-INF/native-image/**</exclude>
                                         <exclude>META-INF/substrate/**</exclude>
                                     </excludes>
@@ -140,7 +135,6 @@
                                 <filter>
                                     <artifact>io.github.willena:sqlite-jdbc</artifact>
                                     <excludes>
-                                        <exclude>org/sqlite/native/Windows/**</exclude>
                                         <exclude>org/sqlite/native/Linux/**</exclude>
                                         <exclude>org/sqlite/native/linux/**</exclude>
                                         <exclude>org/sqlite/native/FreeBSD/**</exclude>
@@ -153,7 +147,6 @@
                                     </excludes>
                                 </filter>
 
-                                <!-- Для JavaFX исключаем substrate конфиги -->
                                 <filter>
                                     <artifact>org.openjfx:javafx-base</artifact>
                                     <excludes>
@@ -178,6 +171,15 @@
                                         <exclude>META-INF/substrate/**</exclude>
                                     </excludes>
                                 </filter>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+
                             </filters>
 
                             <createSourcesJar>false</createSourcesJar>

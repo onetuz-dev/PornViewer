@@ -52,7 +52,6 @@ jobs:
             --dest installer `
             --resource-dir resources-pv `
             --icon files\PornViewer.ico `
-            --license-file files\LICENSE.txt `
             --app-version "1.7.5" `
             --vendor "PlovDev" `
             --copyright "© 2026 PlovDev. Все права защищены." `

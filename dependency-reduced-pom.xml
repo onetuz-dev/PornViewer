@@ -27,7 +27,6 @@
                   <exclude>com.google.errorprone:error_prone_annotations</exclude>
                   <exclude>org.checkerframework:checker-qual</exclude>
                   <exclude>com.google.code.findbugs:jsr305</exclude>
-                  <exclude>org.jetbrains.kotlin:kotlin-stdlib-common</exclude>
                   <exclude>org.intellij.lang.annotations:annotations</exclude>
                 </excludes>
               </artifactSet>
@@ -45,7 +44,6 @@
                 <filter>
                   <artifact>io.github.willena:sqlite-jdbc</artifact>
                   <excludes>
-                    <exclude>org/sqlite/native/Windows/**</exclude>
                     <exclude>org/sqlite/native/Linux/**</exclude>
                     <exclude>org/sqlite/native/linux/**</exclude>
                     <exclude>org/sqlite/native/FreeBSD/**</exclude>
@@ -79,6 +77,14 @@
                   <artifact>org.openjfx:javafx-media</artifact>
                   <excludes>
                     <exclude>META-INF/substrate/**</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
                   </excludes>
                 </filter>
               </filters>
