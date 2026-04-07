@@ -58,7 +58,6 @@ jobs:
             --description "Безопасный и анонимный просмотр видео 18+ с шифрованием и поддержкой плагинов" `
             --java-options "-Xmx2G" `
             --java-options "-Dfile.encoding=UTF-8" `
-            --file-associations files\video-assoc.properties `
             --win-dir-chooser `
             --win-shortcut `
             --win-menu `
