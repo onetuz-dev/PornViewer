@@ -71,17 +71,32 @@ jobs:
           path: installer/*.exe
           if-no-files-found: error
 
-      - name: UI Screenshot Test
+      - name: UI Smoke Test with Logs
         shell: powershell
         run: |
-          $proc = Start-Process -FilePath "installer\PornViewer\PornViewer.exe" -PassThru
-          Start-Sleep -s 30
-          Add-Type -AssemblyName System.Windows.Forms
-          $bmp = New-Object System.Drawing.Bitmap([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width, [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
-          $graphics = [System.Drawing.Graphics]::FromImage($bmp)
-          $graphics.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
-          $bmp.Save("C:\Users\runneradmin\Desktop\screen.png")
-          Stop-Process -Id $proc.Id
+            # Запускаем EXE и принудительно направляем вывод (stdout и stderr) в файлы
+            $proc = Start-Process -FilePath "installer\PornViewer\PornViewer.exe" `
+              -RedirectStandardOutput "output.log" `
+              -RedirectStandardError "error.log" `
+              -PassThru
+            
+            Start-Sleep -s 30
+            
+            # Читаем содержимое логов прямо в консоль GitHub Actions
+            Write-Host "========== APP LOGS =========="
+            if (Test-Path "output.log") { Get-Content "output.log" }
+            
+            Write-Host "========== ERROR LOGS =========="
+            if (Test-Path "error.log") { Get-Content "error.log" }
+            
+            # Скриншот (оставляем твой код)
+            Add-Type -AssemblyName System.Windows.Forms
+            $bmp = New-Object System.Drawing.Bitmap([System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width, [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height)
+            $graphics = [System.Drawing.Graphics]::FromImage($bmp)
+            $graphics.CopyFromScreen(0, 0, 0, 0, $bmp.Size)
+            $bmp.Save("screen.png")
+            
+            Stop-Process -Id $proc.Id
 
       - name: Upload Screenshot
         uses: actions/upload-artifact@v4
