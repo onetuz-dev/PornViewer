@@ -9,15 +9,18 @@ SolidCompression=yes
 OutputDir=..\installer
 OutputBaseFilename=PornViewer-Setup-1.7.5
 PrivilegesRequired=admin
+LicenseFile=..\files\LICENSE.txt
 SetupIconFile=..\files\PornViewer.ico
-
 
 [Files]
 Source: "..\installer\PornViewer\*"; DestDir: "{app}"; Flags: recursesubdirs
 
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
+
 [Icons]
 Name: "{group}\PornViewer"; Filename: "{app}\PornViewer.exe"
-Name: "{commondesktop}\PornViewer"; Filename: "{app}\PornViewer.exe"
+Name: "{commondesktop}\PornViewer"; Filename: "{app}\PornViewer.exe"; Tasks: desktopicon
 
 [Registry]
 Root: HKCR; Subkey: "pv"; ValueType: string; ValueData: "URL:PornViewer Protocol"; Flags: uninsdeletekey
