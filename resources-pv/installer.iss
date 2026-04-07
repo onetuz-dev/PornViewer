@@ -16,7 +16,7 @@ SetupIconFile=..\files\PornViewer.ico
 Source: "..\installer\PornViewer\*"; DestDir: "{app}"; Flags: recursesubdirs
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Icons]
 Name: "{group}\PornViewer"; Filename: "{app}\PornViewer.exe"
