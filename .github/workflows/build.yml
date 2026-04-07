@@ -32,29 +32,43 @@ jobs:
       - name: List input-pv directory
         run: dir input-pv
 
-      - name: Create installer with jpackage
+      - name: Create JRE
+        run: |
+          if (Test-Path "files\pv-jre-win") { Remove-Item -Recurse -Force files\pv-jre-win }
+          jlink --add-modules java.base,jdk.crypto.ec,jdk.httpserver,java.desktop,java.logging,java.net.http,java.sql,jdk.unsupported `
+          --strip-debug --no-header-files --no-man-pages --compress=zip-9 `
+          --output files\pv-jre-win
+          if (Test-Path "files\pv-jre-win\legal") { Remove-Item -Recurse -Force files\pv-jre-win\legal }
+
+      - name: Create App image
         run: |
           jpackage `
-            --type exe `
+            --type app-image `
             --input input-pv `
             --name PornViewer `
             --main-jar PornViewer.jar `
             --main-class com.plovdev.pornviewer.Launcher `
+            --runtime-image files\pv-jre-win `
             --dest installer `
             --resource-dir resources-pv `
-            --icon files/PornViewer.ico `
-            --license-file files/LICENSE.txt `
+            --icon files\PornViewer.ico `
+            --license-file files\LICENSE.txt `
             --app-version "1.7.5" `
             --vendor "PlovDev" `
             --copyright "© 2026 PlovDev. Все права защищены." `
             --description "Безопасный и анонимный просмотр видео 18+ с шифрованием и поддержкой плагинов" `
             --java-options "-Xmx2G" `
             --java-options "-Dfile.encoding=UTF-8" `
-            --file-associations files/video-assoc.properties `
+            --file-associations files\video-assoc.properties `
             --win-dir-chooser `
             --win-shortcut `
             --win-menu `
             --verbose
+
+      - name: Compile Inno Setup Installer
+        uses: Mudlet/inno-setup-action@v2
+        with:
+          filepath: resources-pv/installer.iss
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
@@ -62,10 +76,3 @@ jobs:
           name: windows-installer
           path: installer/*.exe
           if-no-files-found: error
-
-      - name: Upload Windows installer to release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: installer/*.exe
-          tag_name: ${{ github.ref_name }}
