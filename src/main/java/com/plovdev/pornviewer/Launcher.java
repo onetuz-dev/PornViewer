@@ -2,6 +2,7 @@ package com.plovdev.pornviewer;
 
 import com.github.javakeyring.Keyring;
 import com.github.javakeyring.PasswordAccessException;
+import com.plovdev.pornviewer.databases.SecureDB;
 import com.plovdev.pornviewer.events.listeners.ServerEventListenerAdapter;
 import com.plovdev.pornviewer.gui.MainMenu;
 import com.plovdev.pornviewer.server.SafeHttpServer;
@@ -31,7 +32,6 @@ public class Launcher {
     }
 
     public static void main(String[] args) throws Exception {
-        startServer(args);
         try {
             if (Taskbar.isTaskbarSupported()) {
                 Taskbar taskbar = Taskbar.getTaskbar();
@@ -42,6 +42,8 @@ public class Launcher {
         }
         try {
             initPassword();
+            SecureDB.initDB();
+            startServer(args);
 
             Path downloadsPath = FileUtils.getPvDownloadsPath();
             if (!Files.exists(downloadsPath)) {

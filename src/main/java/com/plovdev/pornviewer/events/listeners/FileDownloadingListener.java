@@ -5,10 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class FileDownloadingListener {
-    private static final ArrayList<FileDownloadingEvent> starts = new ArrayList<>();
+    private static final List<FileDownloadingEvent> starts = new CopyOnWriteArrayList<>();
     private static final Logger log = LoggerFactory.getLogger(FileDownloadingListener.class);
 
     private FileDownloadingListener() {
