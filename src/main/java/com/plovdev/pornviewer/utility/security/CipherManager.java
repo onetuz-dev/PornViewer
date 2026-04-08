@@ -1,7 +1,6 @@
 package com.plovdev.pornviewer.utility.security;
 
-import com.github.javakeyring.Keyring;
-import com.plovdev.pornviewer.utility.files.FileUtils;
+import com.plovdev.pornviewer.utility.files.EnvReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +46,7 @@ public class CipherManager {
     }
 
     public static String getPassword() {
-        try (Keyring keyring = Keyring.create()) {
-            return keyring.getPassword(FileUtils.PORN_VIEWER_SIGN, FileUtils.PORN_VIEWER_SIGN);
-        } catch (Exception e) {
-            throw new NullPointerException("Getted password is null!");
-        }
+        return EnvReader.getEnv("VIDEO_PASSWORD");
     }
 
     private SecretKey generateKeyFromPassword(String password) throws Exception {

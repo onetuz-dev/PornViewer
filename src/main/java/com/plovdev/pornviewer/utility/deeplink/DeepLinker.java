@@ -21,7 +21,7 @@ public class DeepLinker {
                     }
                 });
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error to init deepleenk handler: {}", e.getMessage());
         }
     }
