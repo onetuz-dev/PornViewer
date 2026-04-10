@@ -1,6 +1,5 @@
 package com.plovdev.pornviewer.models;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.plovdev.pornviewer.utility.json.VideoInfoSerializer;
 import javafx.scene.image.Image;
@@ -16,7 +15,6 @@ import java.util.List;
 
 public class DownloadedVideoInfo {
     private static final Logger log = LoggerFactory.getLogger(DownloadedVideoInfo.class);
-    private static final Gson GSON = new Gson();
 
     private transient byte[] previewBytes;
 
