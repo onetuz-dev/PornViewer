@@ -15,7 +15,6 @@ import com.plovdev.pornviewer.httpquering.PornRequestProvider;
 import com.plovdev.pornviewer.models.VideoInfo;
 import com.plovdev.pornviewer.utility.files.FileUtils;
 import com.plovdev.pornviewer.utility.json.VideoInfoSerializer;
-import com.plovdev.pornviewer.utility.security.CipherManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +71,7 @@ public class PornDownloader {
 
             // step 2 - init cipher engine
             // get ready to encrypt video chunks
-            CryptoEngine engine = new CryptoEngine(Cipher.ENCRYPT_MODE, CipherManager.getPassword().toCharArray(), header.baseNonce());
+            CryptoEngine engine = new CryptoEngine(Cipher.ENCRYPT_MODE, CipherEngineUtils.getPassword().toCharArray(), header.baseNonce());
 
             // step 3 - load, encrypt and save video chunks:
             loadAndSaveVideoChunks(writer, engine);
@@ -126,7 +125,7 @@ public class PornDownloader {
     private void prepareAndWriteMetadata(PVVFWriter writer, CryptoEngine engine, VideoInfo info, byte[] preview) {
         byte[] nonce = new byte[VideoMetadata.BASE_NONCE_LENGTH];
         CipherEngineUtils.createRandomPassword(nonce);
-        engine.setBaseNonce(CipherManager.getPassword().toCharArray(), nonce); // update nonce to encrypt metadata
+        engine.setBaseNonce(CipherEngineUtils.getPassword().toCharArray(), nonce); // update nonce to encrypt metadata
 
         String json = formJson(info);
         byte[] jsonNonce = VideoMetadata.getJsonFullNonce(nonce);

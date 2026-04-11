@@ -8,8 +8,6 @@ import com.plovdev.pornviewer.httpquering.PornParser;
 import com.plovdev.pornviewer.models.DownloadedVideoInfo;
 import com.plovdev.pornviewer.models.ModelInfo;
 import com.plovdev.pornviewer.pornimpl.porn365.DefPornParser;
-import com.plovdev.pornviewer.utility.security.CipherManager;
-import com.plovdev.pornviewer.utility.security.VideoCipherrer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +19,6 @@ import java.util.List;
 
 public class Test {
     private static final Logger log = LoggerFactory.getLogger(Test.class);
-    private static final VideoCipherrer cipher = new VideoCipherrer(CipherManager.getPassword());
 
     public static void main(String[] args) throws Exception {
         PornParser parser = new DefPornParser();

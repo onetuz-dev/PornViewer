@@ -1,5 +1,8 @@
 package com.plovdev.pornviewer.encryptionsupport;
 
+import com.github.javakeyring.Keyring;
+import com.plovdev.pornviewer.utility.files.FileUtils;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
@@ -29,6 +32,14 @@ public class CipherEngineUtils {
         Arrays.fill(key, (byte) 0); // затираем следы
         Arrays.fill(password, ' ');
         return result;
+    }
+
+    public static String getPassword() {
+        try (Keyring keyring = Keyring.create()) {
+            return keyring.getPassword(FileUtils.PORN_VIEWER_SIGN, FileUtils.PORN_VIEWER_SIGN);
+        } catch (Exception e) {
+            throw new NullPointerException("Getted password is null!");
+        }
     }
 
     public static IvParameterSpec createParameterSpecFromBaseNonce(long counter, byte[] baseNonce) {

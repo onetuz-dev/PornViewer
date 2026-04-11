@@ -1,5 +1,6 @@
 package com.plovdev.pornviewer.server.handlers;
 
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptionsupport.CryptoEngine;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.read.PVVFVideoReader;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.EncryptedVideo;
@@ -8,7 +9,6 @@ import com.plovdev.pornviewer.server.utils.Chunk;
 import com.plovdev.pornviewer.server.utils.ContentUtils;
 import com.plovdev.pornviewer.server.utils.VideoRequestSet;
 import com.plovdev.pornviewer.utility.files.ServerPaths;
-import com.plovdev.pornviewer.utility.security.CipherManager;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -182,7 +182,7 @@ public class SafeHttpHandler implements HttpHandler {
         VideoRequestSet set = videoRequestsCache.get(file);
         if (set == null) {
             EncryptedVideo video = PVVFVideoReader.readVideo(file);
-            CryptoEngine engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherManager.getPassword().toCharArray(), video.getVideoHeader().baseNonce());
+            CryptoEngine engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherEngineUtils.getPassword().toCharArray(), video.getVideoHeader().baseNonce());
             set = new VideoRequestSet(video, engine);
             videoRequestsCache.put(file, set);
         }

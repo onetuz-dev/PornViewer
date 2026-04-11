@@ -3,13 +3,13 @@ package com.plovdev.pornviewer;
 import com.github.javakeyring.Keyring;
 import com.github.javakeyring.PasswordAccessException;
 import com.plovdev.pornviewer.databases.SecureDB;
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.events.listeners.ServerEventListenerAdapter;
 import com.plovdev.pornviewer.gui.MainMenu;
 import com.plovdev.pornviewer.server.SafeHttpServer;
 import com.plovdev.pornviewer.utility.LauncherHelper;
 import com.plovdev.pornviewer.utility.deeplink.DeepLinker;
 import com.plovdev.pornviewer.utility.files.FileUtils;
-import com.plovdev.pornviewer.utility.security.CipherManager;
 import javafx.application.Application;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +113,9 @@ public class Launcher {
             }
 
             if (retrievedPassword == null) {
-                String newPassword = CipherManager.generateRandomPassword();
+                byte[] password = new byte[32];
+                CipherEngineUtils.createRandomPassword(password);
+                String newPassword = new String(password);
                 keyring.setPassword(service, account, newPassword);
                 log.info("New password generated and saved to keychain");
                 System.gc();

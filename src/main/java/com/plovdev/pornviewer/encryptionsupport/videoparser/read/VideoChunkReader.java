@@ -1,8 +1,8 @@
 package com.plovdev.pornviewer.encryptionsupport.videoparser.read;
 
+import com.plovdev.pornviewer.encryptionsupport.CipherEngineUtils;
 import com.plovdev.pornviewer.encryptionsupport.CryptoEngine;
 import com.plovdev.pornviewer.encryptionsupport.videoparser.videomodel.VideoChunk;
-import com.plovdev.pornviewer.utility.security.CipherManager;
 
 import javax.crypto.Cipher;
 import java.io.File;
@@ -13,7 +13,7 @@ public class VideoChunkReader implements AutoCloseable {
 
     public VideoChunkReader(File file, byte[] baseNonce) {
         pvvfParser = new PVVFParser(file);
-        engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherManager.getPassword().toCharArray(), baseNonce);
+        engine = new CryptoEngine(Cipher.DECRYPT_MODE, CipherEngineUtils.getPassword().toCharArray(), baseNonce);
     }
     public VideoChunkReader(File file, CryptoEngine engine) {
         pvvfParser = new PVVFParser(file);
