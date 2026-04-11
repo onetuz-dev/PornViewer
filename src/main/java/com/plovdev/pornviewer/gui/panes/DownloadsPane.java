@@ -192,7 +192,7 @@ public class DownloadsPane extends AnchorPane {
                         try {
                             DownloadedVideoInfo videoInfo = PVVFVideoReader.readInfo(file);
                             card.setTitle(videoInfo.getTitle());
-                            card.setDuration(DurationUtils.getVideoDuration(videoInfo.getTotalDuration()));
+                            card.setDuration(DurationUtils.formatDurationToString(videoInfo.getTotalDuration()));
                             card.setDescription(videoInfo.getDescription());
                             card.setPreview(videoInfo.getPreviewBytes());
                         } catch (Exception e) {

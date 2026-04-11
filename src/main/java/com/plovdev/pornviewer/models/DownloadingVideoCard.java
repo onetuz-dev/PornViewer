@@ -163,7 +163,7 @@ public class DownloadingVideoCard extends DownloadedVideoCard {
                     try {
                         DownloadedVideoInfo videoInfo = PVVFVideoReader.readInfo(file);
                         downloadedVideoCard.setTitle(videoInfo.getTitle());
-                        downloadedVideoCard.setDuration(DurationUtils.getVideoDuration(videoInfo.getTotalDuration()));
+                        downloadedVideoCard.setDuration(DurationUtils.formatDurationToString(videoInfo.getTotalDuration()));
                         downloadedVideoCard.setDescription(videoInfo.getDescription());
                         downloadedVideoCard.setPreview(videoInfo.getPreviewBytes());
                     } catch (Exception e) {

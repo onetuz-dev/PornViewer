@@ -130,6 +130,8 @@ public class FavoritePane extends AnchorPane {
         HBox controlContainer = new HBox(30, new VBox(10, box1, box3), new VBox(10, box4, box6), r1, new VBox(0, new HBox(r3, loadAll), r2, new HBox(30, groupBoxScroll, addGroup)));
         vBox.getChildren().addAll(new HBox(field, clear), controlContainer);
         vBox.setPadding(new Insets(0, 0, 30, 0));
+
+        Label totalFavorites = new Label("Всего в избранном: " + allFavorites.size());
         root.setTop(new VBox(vBox));
 
         root.getStyleClass().add("main-pane");

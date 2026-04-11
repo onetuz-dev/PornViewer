@@ -39,10 +39,10 @@ public class VideoPlyer extends StackPane {
         mediaView.fitWidthProperty().bind(widthProperty());
         mediaView.fitHeightProperty().bind(heightProperty());
 
-        Label totalLabel = new Label(formatTime(mediaPlayer.getTotalDuration()));
+        Label totalLabel = new Label(DurationUtils.formatDurationToString(DurationUtils.ofJavaFxDuraion(mediaPlayer.getTotalDuration())));
         totalLabel.getStyleClass().add("marker-download");
         timeLabel.getStyleClass().add("marker-download");
-        mediaPlayer.setOnReady(() -> totalLabel.setText(formatTime(mediaPlayer.getTotalDuration())));
+        mediaPlayer.setOnReady(() -> totalLabel.setText(DurationUtils.formatDurationToString(DurationUtils.ofJavaFxDuraion(mediaPlayer.getTotalDuration()))));
 
         ToggleButton playStop = new ToggleButton("| |");
         playStop.setMinSize(70, 70);
@@ -184,7 +184,7 @@ public class VideoPlyer extends StackPane {
             if (!isWork && mediaPlayer.getTotalDuration().greaterThan(Duration.ZERO)) {
                 double progress = p2.toSeconds() / mediaPlayer.getTotalDuration().toSeconds();
                 slider.setValue(progress);
-                timeLabel.setText(formatTime(p2));
+                timeLabel.setText(DurationUtils.formatDurationToString(DurationUtils.ofJavaFxDuraion(p2)));
             }
         });
         slider.valueProperty().addListener((p1, p2, p3) -> {
@@ -247,19 +247,6 @@ public class VideoPlyer extends StackPane {
         mediaPlayer.pause();
         isPlay = false;
         resetHideTimer();
-    }
-
-    private String formatTime(Duration duration) {
-        if (duration == null || duration.isUnknown()) return "00:00";
-        long hours = Math.round(duration.toHours());
-        long minutes = Math.round(duration.toMinutes() % 60.0);
-        long seconds = Math.round(duration.toSeconds() % 60.0);
-
-        if (hours > 0) {
-            return String.format("%2d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            return String.format("%02d:%02d", minutes, seconds);
-        }
     }
 
     private Region hReg() {
