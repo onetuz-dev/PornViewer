@@ -59,6 +59,7 @@ java -jar ./input-pv/PornViewer.jar
 ```
 
 # Наигрвшись, необходимо обязательно очистить все что было скачано:
+
 Для этого выполним скрипт cleanup.sh
 `chmod +x cleanup.sh && ./cleanup.sh`
 
