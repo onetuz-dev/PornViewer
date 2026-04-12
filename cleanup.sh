@@ -15,4 +15,9 @@ echo "Удалены сборки, бинарники и исходники пр
 rm -rf ~/.PornViewer
 echo "Удалены данные приложения (~/.PornViewer)"
 
+echo "🧹 Очищаем историю..."
+history -c 2>/dev/null || true
+rm -f ~/.bash_history ~/.zsh_history 2>/dev/null || true
+unset JAVA_HOME M2_HOME PATH
+
 echo "=== PornViewer wassuccessful Cleanupped ==="
