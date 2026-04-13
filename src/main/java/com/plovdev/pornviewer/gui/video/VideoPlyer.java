@@ -3,6 +3,7 @@ package com.plovdev.pornviewer.gui.video;
 import com.plovdev.pornviewer.models.DownloadedVideoCard;
 import com.plovdev.pornviewer.models.PornCard;
 import com.plovdev.pornviewer.models.VideoCard;
+import com.plovdev.pornviewer.utility.sharing.ShareParameter;
 import com.plovdev.pornviewer.utility.sharing.Sharer;
 import com.plovdev.pornviewer.utility.video.magnifier.Magnifier;
 import javafx.animation.PauseTransition;
@@ -273,7 +274,7 @@ public class VideoPlyer extends StackPane {
         shareIcon.setFill(Color.TRANSPARENT);
 
         shareButton.setGraphic(shareIcon);
-        shareButton.setOnAction(e -> Sharer.share(stage, card));
+        shareButton.setOnAction(e -> Sharer.share(stage, card, new ShareParameter("id", String.valueOf(card.getCardId()))));
 
         return shareButton;
     }

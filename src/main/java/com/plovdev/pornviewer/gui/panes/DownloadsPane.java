@@ -174,8 +174,8 @@ public class DownloadsPane extends AnchorPane {
                         card.setDeleteRun(() -> {
                             isSelf = card.isSelf();
                             try {
-                                String filePath = URLDecoder.decode(card.getOriginalPath(), StandardCharsets.UTF_8).substring(5);
-                                boolean isDeleted = Files.deleteIfExists(Path.of(filePath));
+                                String filePath = URLDecoder.decode(card.getOriginalPath(), StandardCharsets.UTF_8);
+                                boolean isDeleted = Files.deleteIfExists(Path.of(URI.create(filePath)));
                                 log.info("File {} deleted: {}", filePath, isDeleted);
 
                                 Platform.runLater(() -> pane.getChildren().remove(card));

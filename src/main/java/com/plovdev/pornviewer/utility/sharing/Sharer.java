@@ -15,7 +15,7 @@ public class Sharer {
             default -> throw new IllegalArgumentException("Invalid share method: " + card);
         };
 
-        StringBuilder shareParams = new StringBuilder("id=" + card.getCardId());
+        StringBuilder shareParams = new StringBuilder();
 
         for (ShareParameter parameter : parameters) {
             shareParams.append("&").append(parameter);

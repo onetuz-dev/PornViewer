@@ -178,14 +178,17 @@ public class DownloadedVideoCard extends VideoCard {
     }
 
     private void fillActionsBox(Button actions) {
-        actions.setOnMousePressed(e -> {
-            ContextMenu menu = new ContextMenu();
-            menu.getStyleClass().add("options");
-            fillActinsMenu(menu);
+        ContextMenu menu = new ContextMenu();
+        menu.getStyleClass().add("options");
+        fillActinsMenu(menu);
+        menu.setAutoHide(false);
+
+        actions.setOnMouseReleased(e -> {
             menu.show(actions, e.getScreenX(), e.getScreenY());
             if (menu.getScene() != null) {
                 menu.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/context-menu.css")).toExternalForm());
             }
+            e.consume();
         });
 
     }
