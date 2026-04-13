@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayInputStream;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -198,7 +196,7 @@ public class VideoCard extends PornCard {
             download.setFitHeight(30);
             download.setPreserveRatio(true);
 
-            download.setOnMousePressed(e -> {
+            download.setOnMouseClicked(e -> {
                 setInfo(parser.parseVideo(getUrl()));
                 showContextMenu(download, e.getScreenX(), e.getScreenY());
             });
@@ -221,7 +219,7 @@ public class VideoCard extends PornCard {
 
             // Обработчики наведения
             mainContainer.setOnMouseEntered(e -> infoOverlay.setVisible(true));
-            mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
+            //mainContainer.setOnMouseExited(e -> infoOverlay.setVisible(false));
             fav.setOnMousePressed(e -> {
                 setFavorite(!isFavorite());
                 makeFavorite();
@@ -237,12 +235,16 @@ public class VideoCard extends PornCard {
         ContextMenu menu = new ContextMenu();
         menu.getStyleClass().add("options");
         for (String str : info.getUrls().keySet()) {
+            log.info("Add item {}", str);
             menu.getItems().add(getLoader(str));
         }
-        menu.show(node, x, y);
-        if (menu.getScene() != null) {
-            menu.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/context-menu.css")).toExternalForm());
-        }
+        log.info("Showing load menu...");
+        Platform.runLater(() -> {
+            menu.show(node, x, y);
+            if (menu.getScene() != null) {
+                menu.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/plovdev/pornviewer/styles/context-menu.css")).toExternalForm());
+            }
+        });
     }
 
     protected MenuItem getLoader(String qual) {
@@ -254,27 +256,6 @@ public class VideoCard extends PornCard {
         return item;
     }
 
-
-    public String getVideoDuration(javafx.util.Duration total) {
-        if (total != javafx.util.Duration.UNKNOWN) {
-            BigDecimal mills = new BigDecimal(String.valueOf(total.toMillis()));
-
-            BigDecimal totalSeconds = mills.divide(new BigDecimal("1000.0"), 10, RoundingMode.HALF_UP);
-
-            int hours = totalSeconds.intValue() / (60 * 60);
-            String h = "";
-            if (hours != 0) h = hours + ":";
-
-            BigDecimal minutes = totalSeconds.divide(new BigDecimal("60.0"), 10, RoundingMode.HALF_UP);
-            BigDecimal seconds = totalSeconds.remainder(new BigDecimal("60.0"));
-
-            long sec = Math.round(seconds.doubleValue());
-            long min = Math.round(minutes.doubleValue());
-
-            return h + String.format("%2s:%2s", min, sec);
-        }
-        return "00:00";
-    }
 
     @Override
     public String toString() {

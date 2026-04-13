@@ -81,6 +81,7 @@ public class ServerDecryptedStreamer {
                 log.warn("Underflow! Still need to write {} bytes", remaining);
             }
             stream.flush();
+            log.info("Byres flushed");
         } catch (IOException e) {
             if (!e.getMessage().contains("Broken pipe")) {
                 log.error("Streaming error: {}", e.getMessage());

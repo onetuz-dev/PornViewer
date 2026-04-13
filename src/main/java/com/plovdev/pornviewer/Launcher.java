@@ -38,8 +38,9 @@ public class Launcher {
                 taskbar.setIconImage(ImageIO.read(Objects.requireNonNull(Launcher.class.getResourceAsStream("/com/plovdev/pornviewer/pv-logo.png"))));
             }
         } catch (Exception e) {
-            log.error("Error setup image icon: ", e);
+            log.debug("Error to setup image icon: ", e);
         }
+
         try {
             initPassword();
             SecureDB.initDB();
